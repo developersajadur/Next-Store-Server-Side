@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userRoute = void 0;
+const express_1 = require("express");
+const user_controller_1 = require("./user.controller");
+const auth_1 = __importDefault(require("../../middlewares/auth"));
+const user_constant_1 = require("./user.constant");
+const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
+const user_validation_1 = require("./user.validation");
+const router = (0, express_1.Router)();
+router.post('/register', (0, validateRequest_1.default)(user_validation_1.UserValidationSchema.createUserValidation), user_controller_1.userController.createUserIntoDb);
+router.post('/change-password', (0, auth_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.customer), user_controller_1.userController.changePassword);
+router.get('/', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.getAllUsers);
+router.get('/user/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), user_controller_1.userController.getSingleUser);
+router.put('/update-user', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), (0, validateRequest_1.default)(user_validation_1.UserValidationSchema.updateUserValidation), user_controller_1.userController.updateUser);
+router.post('/block-user', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.blockUser);
+router.post('/unblock-user', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.unBlockUser);
+exports.userRoute = router;

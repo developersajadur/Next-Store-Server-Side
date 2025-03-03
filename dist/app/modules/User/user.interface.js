@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+// name: string;
+// email: string;
+// password: string;
+// role: UserRole;
+// phone?: string;
+// address?: string;
+// city?: string;
+// createdAt: Date;
+// updatedAt: Date;
