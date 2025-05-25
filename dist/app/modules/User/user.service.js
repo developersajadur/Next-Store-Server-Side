@@ -13,23 +13,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const http_status_1 = __importDefault(require("http-status"));
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));
 const user_constant_1 = require("./user.constant");
+const user_interface_1 = require("./user.interface");
 const user_model_1 = require("./user.model");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const config_1 = __importDefault(require("../../config"));
-const createUserIntoDb = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    const isUserExist = yield user_model_1.UserModel.findOne({ email: user.email });
+const jwtHelper_1 = require("../../helpers/jwtHelper");
+const createUserIntoDb = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const isUserExist = yield user_model_1.UserModel.findOne({ email: payload.email });
     if (isUserExist) {
-        if (isUserExist.phone === user.phone) {
-            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'User with this phone number already exists');
-        }
         throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'User with this email already exists');
     }
-    const result = yield user_model_1.UserModel.create(user);
-    return result;
+    const user = yield user_model_1.UserModel.create(payload);
+    const jwtPayload = {
+        userId: user._id.toString(),
+        email: user === null || user === void 0 ? void 0 : user.email,
+        role: user === null || user === void 0 ? void 0 : user.role,
+        loginType: user.loginType
+    };
+    const token = (0, jwtHelper_1.createToken)(jwtPayload, config_1.default.jwt_token_secret, config_1.default.jwt_refresh_expires_in);
+    return { user, token };
 });
 const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.UserModel.findById(userId);
@@ -68,6 +75,9 @@ const changePassword = (userId, newPassword, currentPassword) => __awaiter(void 
     const user = yield user_model_1.UserModel.findById(userId).select('+password');
     if (!user) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    }
+    if (user.loginType !== user_interface_1.LOGIN_TYPE.PASSWORD) {
+        throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'You are not registered by password');
     }
     const passwordMatch = yield bcrypt_1.default.compare(currentPassword, user.password);
     if (!passwordMatch) {

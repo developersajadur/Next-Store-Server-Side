@@ -33,18 +33,13 @@ const createOrder = async (
       if (!product || product.isDeleted) {
         throw new AppError(httpStatus.NOT_FOUND, `Product not found`);
       }
-      if (!product.inStock || product.stockQuantity < item.quantity) {
+      if (product.stock_quantity < item.quantity) {
         throw new AppError(
           httpStatus.NOT_ACCEPTABLE,
           `Not enough stock for ${product.title}`,
         );
       }
-      product.stockQuantity -= item.quantity;
-
-      if (product.stockQuantity === 0) {
-        product.inStock = false;
-      }
-
+      product.stock_quantity -= item.quantity;
       await product.save();
 
       const subtotal = product.price * item.quantity;

@@ -3,12 +3,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import status from 'http-status';
 import AppError from '../errors/AppError';
-import catchAsync from '../utils/catchAsync';
-import { tokenDecoder } from '../modules/Auth/auth.utils';
+import catchAsync from '../helpers/catchAsync';
 import { UserModel } from '../modules/User/user.model';
 import { TUserRole } from '../modules/User/user.interface';
 import { JwtPayload } from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
+import { tokenDecoder } from '../helpers/jwtHelper';
 
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {

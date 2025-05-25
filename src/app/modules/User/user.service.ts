@@ -1,30 +1,41 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import status from 'http-status';
 import QueryBuilder from '../../builders/QueryBuilder';
 import { userSearchableFields } from './user.constant';
-import { TUser } from './user.interface';
+import { LOGIN_TYPE, TUser } from './user.interface';
 import { UserModel } from './user.model';
 import AppError from '../../errors/AppError';
 import bcrypt from 'bcrypt';
 import config from '../../config';
+import { createToken } from '../../helpers/jwtHelper';
 
-const createUserIntoDb = async (user: TUser) => {
-  const isUserExist = await UserModel.findOne({ email: user.email });
+const createUserIntoDb = async (payload: TUser) => {
+  const isUserExist = await UserModel.findOne({ email: payload.email });
 
   if (isUserExist) {
-    if (isUserExist.phone === user.phone) {
-      throw new AppError(
-        status.BAD_REQUEST,
-        'User with this phone number already exists',
-      );
-    }
     throw new AppError(
       status.BAD_REQUEST,
       'User with this email already exists',
     );
   }
 
-  const result = await UserModel.create(user);
-  return result;
+  const user = await UserModel.create(payload);
+
+  const jwtPayload = {
+    userId: user._id.toString(),
+    email: user?.email,
+    role: user?.role,
+    loginType: user.loginType
+  };
+
+  const token = createToken(
+    jwtPayload,
+    config.jwt_token_secret as string,
+    config.jwt_refresh_expires_in as any,
+  );
+
+
+  return {user, token};
 };
 
 const getSingleUser = async (userId: string) => {
@@ -79,7 +90,11 @@ const changePassword = async (
     throw new AppError(status.NOT_FOUND, 'User not found');
   }
 
-  const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+  if(user.loginType !== LOGIN_TYPE.PASSWORD){
+   throw new AppError(status.UNAUTHORIZED, 'You are not registered by password');
+  }
+
+  const passwordMatch = await bcrypt.compare(currentPassword, user.password as string);
   if (!passwordMatch) {
     throw new AppError(status.UNAUTHORIZED, 'Invalid current password!');
   }

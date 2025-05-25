@@ -12,27 +12,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.orderUtils = void 0;
+exports.paymentUtils = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const shurjopay_1 = __importDefault(require("shurjopay"));
 const config_1 = __importDefault(require("../../config"));
 const shurjopay = new shurjopay_1.default();
-shurjopay.config(config_1.default.sp_endpoint, // Set endpoint
-config_1.default.sp_username, // Set username
-config_1.default.sp_password, // Set password
-config_1.default.sp_prefix, // Set prefix
-config_1.default.sp_return_url);
+shurjopay.config(config_1.default.sp_endpoint, config_1.default.sp_username, config_1.default.sp_password, config_1.default.sp_prefix, config_1.default.sp_return_url);
 // Make payment asynchronously
 const makePaymentAsync = (paymentPayload) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Wait for the payment response and return it
         return new Promise((resolve, reject) => {
             shurjopay.makePayment(paymentPayload, (response) => resolve(response), (error) => reject(error));
         });
     }
     catch (error) {
         console.error('Error making payment:', error);
-        throw error; // Re-throw error to be handled at the calling point
+        throw error;
     }
 });
 // Verify payment asynchronously
@@ -44,10 +39,10 @@ const verifyPaymentAsync = (order_id) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         console.error('Error verifying payment:', error);
-        throw error; // Re-throw error to be handled at the calling point
+        throw error;
     }
 });
-exports.orderUtils = {
+exports.paymentUtils = {
     makePaymentAsync,
     verifyPaymentAsync,
 };

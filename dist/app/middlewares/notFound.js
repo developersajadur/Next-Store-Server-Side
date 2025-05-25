@@ -14,8 +14,3 @@ const notFound = (req, res, next) => {
     });
 };
 exports.default = notFound;
-// res.status(httpStatus.NOT_FOUND).json({
-//     success: false,
-//     message: 'API Not Found !!',
-//     error: '',
-//   });

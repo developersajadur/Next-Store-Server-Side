@@ -95,30 +95,31 @@ const updateSingleProductById = async (
   return result;
 };
 
-const deleteSingleProductById = async (_id: string) => {
-  try {
-    const product = await ProductModel.findOne({ _id, isDeleted: false });
-    if (!product || product.isDeleted) {
-      throw new AppError(status.NOT_FOUND, 'Product Not Found');
-    }
-  } catch (error: any) {
-    throw new AppError(status.BAD_REQUEST, error.message);
+const deleteMultipleOrSingleMediaById = async (
+  productsId: string[],
+): Promise<void> => {
+  const products = await ProductModel.find({
+    _id: { $in: productsId },
+    isDeleted: false,
+  }).lean();
+
+  if (products.length !== productsId.length) {
+    throw new AppError(
+      status.NOT_FOUND,
+      'One or more media items not found or already deleted.',
+    );
   }
 
-  const result = await ProductModel.findByIdAndUpdate(
-    _id,
-    { isDeleted: true, updatedAt: new Date() },
-    { new: true },
+  await ProductModel.updateMany(
+    { _id: { $in: productsId } },
+    { $set: { isDeleted: true } },
   );
-
-  return result;
 };
-
 export const ProductService = {
   createProductIntoDb,
   getAllProducts,
   getSingleProductById,
   getSingleProductBySlug,
   updateSingleProductById,
-  deleteSingleProductById,
+  deleteMultipleOrSingleMediaById,
 };

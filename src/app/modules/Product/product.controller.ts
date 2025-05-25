@@ -1,8 +1,9 @@
 import status from 'http-status';
-import catchAsync from '../../utils/catchAsync';
+import catchAsync from '../../helpers/catchAsync';
 import { ProductService } from './product.service';
-import sendResponse from '../../utils/sendResponse';
-import { tokenDecoder } from '../Auth/auth.utils';
+import sendResponse from '../../helpers/sendResponse';
+import { tokenDecoder } from '../../helpers/jwtHelper';
+import AppError from '../../errors/AppError';
 
 const createProduct = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
@@ -61,12 +62,21 @@ const updateSingleProductById = catchAsync(async (req, res) => {
   });
 });
 
-const deleteSingleProductById = catchAsync(async (req, res) => {
-  await ProductService.deleteSingleProductById(req?.params?.id);
+const deleteMultipleOrSingleMediaById = catchAsync(async (req, res) => {
+  const { productsId } = req.body;
+
+  if (!Array.isArray(productsId) || productsId.length === 0) {
+    throw new AppError(
+      status.NOT_ACCEPTABLE,
+      'productsId must be a non-empty array.',
+    );
+  }
+
+  await ProductService.deleteMultipleOrSingleMediaById(productsId);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: 'Product deleted successfully',
+    message: 'Products deleted successfully.',
     data: null,
   });
 });
@@ -76,6 +86,6 @@ export const productController = {
   getAllProducts,
   getSingleProductById,
   updateSingleProductById,
-  deleteSingleProductById,
+  deleteMultipleOrSingleMediaById,
   getSingleProductBySlug,
 };

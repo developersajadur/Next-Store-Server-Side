@@ -1,23 +1,24 @@
 import status from 'http-status';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
+import catchAsync from '../../helpers/catchAsync';
+import sendResponse from '../../helpers/sendResponse';
 import { userService } from './user.service';
-import { tokenDecoder } from '../Auth/auth.utils';
+import { tokenDecoder } from '../../helpers/jwtHelper';
 
 const createUserIntoDb = catchAsync(async (req, res) => {
-  const user = await userService.createUserIntoDb(req?.body);
+  const  {user, token} = await userService.createUserIntoDb(req?.body);
   const responseData = {
     _id: user._id,
     name: user.name,
     email: user.email,
     phone: user.phone,
     role: user.role,
+    loginType: user.loginType
   };
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: 'WOW! Registration successful',
-    data: responseData,
+    data:  {responseData, token},
   });
 });
 
@@ -56,7 +57,7 @@ const updateUser = catchAsync(async (req, res) => {
 });
 
 const changePassword = catchAsync(async (req, res) => {
-  const decoded = tokenDecoder(req); // Assuming tokenDecoder extracts the user ID from the token
+  const decoded = tokenDecoder(req);
   const { newPassword, currentPassword } = req.body;
   const { userId } = decoded;
 

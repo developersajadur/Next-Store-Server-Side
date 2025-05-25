@@ -11,11 +11,11 @@ export type TLoginType = keyof typeof LOGIN_TYPE;
 
 
 export type TUser = {
-  _id?: Types.ObjectId;
+  _id: Types.ObjectId;
   name: string;
   email: string;
-  phone: number | string;
-  password: string;
+  phone?: number | string;
+  password?: string;
   role: 'customer' | 'admin';
   profileImage?: string;
   address?: string;

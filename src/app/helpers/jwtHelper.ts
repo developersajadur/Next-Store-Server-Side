@@ -2,11 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { TJwtPayload } from './auth.service';
-import config from '../../config';
 import { Request, Response } from 'express';
-import AppError from '../../errors/AppError';
 import status from 'http-status';
+import AppError from '../errors/AppError';
+import config from '../config';
+import { TJwtPayload } from '../modules/Auth/auth.interface';
+
+
 export const createToken = (
   jwtPayload: TJwtPayload,
   secret: string,
@@ -16,6 +18,8 @@ export const createToken = (
     expiresIn: expiresIn,
   });
 };
+
+
 export const verifyToken = (token: string, secret: string) => {
   return jwt.verify(token, secret) as JwtPayload;
 };

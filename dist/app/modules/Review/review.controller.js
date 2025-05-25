@@ -14,13 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewController = void 0;
 const http_status_1 = __importDefault(require("http-status"));
-const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
-const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
-const auth_utils_1 = require("../Auth/auth.utils");
+const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
+const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
+const jwtHelper_1 = require("../../helpers/jwtHelper");
 const review_service_1 = require("./review.service");
 const createReviewIntoDb = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const payload = req === null || req === void 0 ? void 0 : req.body;
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     payload.userId = userId;
     const review = yield review_service_1.ReviewService.createReviewIntoDb(payload);
@@ -43,7 +43,7 @@ const getAllReviewsFromDb = (0, catchAsync_1.default)((req, res) => __awaiter(vo
 const updateReviewIntoDb = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { reviewId, productId } = req.params;
     const payload = req.body;
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     const review = yield review_service_1.ReviewService.updateReviewIntoDb(payload, reviewId, userId, productId);
     (0, sendResponse_1.default)(res, {
@@ -65,7 +65,7 @@ const getReviewBySlugForEachProduct = (0, catchAsync_1.default)((req, res) => __
 }));
 const deleteReviewFromDb = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { reviewId } = req.params;
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     const review = yield review_service_1.ReviewService.deleteReviewFromDb(reviewId, userId);
     (0, sendResponse_1.default)(res, {
@@ -75,10 +75,23 @@ const deleteReviewFromDb = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         data: review,
     });
 }));
+const getSingleReviewById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
+    const { role, userId } = decoded;
+    const { reviewId } = req.params;
+    const review = yield review_service_1.ReviewService.getSingleReviewById(reviewId, role, userId);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: 'Review retrieved successfully',
+        data: review,
+    });
+}));
 exports.reviewController = {
     createReviewIntoDb,
     getAllReviewsFromDb,
     updateReviewIntoDb,
     getReviewBySlugForEachProduct,
-    deleteReviewFromDb
+    deleteReviewFromDb,
+    getSingleReviewById
 };

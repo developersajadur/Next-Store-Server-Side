@@ -13,24 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
-const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
-const auth_utils_1 = require("../Auth/auth.utils");
+const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
+const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
 const user_model_1 = require("../User/user.model");
 const order_service_1 = require("../Order/order.service");
 const http_status_1 = __importDefault(require("http-status"));
+const jwtHelper_1 = require("../../helpers/jwtHelper");
 const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.body);
-    // const user = (req as any).user;
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     // console.log(userId);
     const user = (yield user_model_1.UserModel.findById(userId));
-    // console.log(user);
-    // console.log(req.body);
     const order = yield order_service_1.orderService.createOrder(user, req.body, req.ip);
-    // Use JSON.stringify to safely convert the order object to a serializable format
     const orderResponse = JSON.parse(JSON.stringify(order));
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -57,19 +51,20 @@ const getOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
         data: orders,
     });
 }));
-const verifyPayment = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const order = yield order_service_1.orderService.verifyPayment(req.query.order_id);
-    // Ensure we return only serializable objects
-    const verifiedPaymentResponse = JSON.parse(JSON.stringify(order));
+const getSingleOrderById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
+    const { role, userId } = decoded;
+    const { orderId } = req.params;
+    const orders = yield order_service_1.orderService.getSingleOrderById(orderId, role, userId);
     (0, sendResponse_1.default)(res, {
         success: true,
-        statusCode: http_status_1.default.CREATED,
-        message: 'Order verified successfully',
-        data: verifiedPaymentResponse,
+        statusCode: http_status_1.default.OK,
+        message: 'Order retrieved successfully',
+        data: orders,
     });
 }));
 const getOrdersForMe = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     const response = yield order_service_1.orderService.getOrdersForMe(userId);
     (0, sendResponse_1.default)(res, {
@@ -81,8 +76,8 @@ const getOrdersForMe = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
 }));
 exports.orderController = {
     createOrder,
-    verifyPayment,
     getOrders,
     getOrdersForMe,
     updateOrderStatus,
+    getSingleOrderById
 };

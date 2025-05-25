@@ -13,9 +13,3 @@ const notFound: RequestHandler = (req, res, next) => {
 };
 
 export default notFound;
-
-// res.status(httpStatus.NOT_FOUND).json({
-//     success: false,
-//     message: 'API Not Found !!',
-//     error: '',
-//   });

@@ -1,11 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// name: string;
-// email: string;
-// password: string;
-// role: UserRole;
-// phone?: string;
-// address?: string;
-// city?: string;
-// createdAt: Date;
-// updatedAt: Date;
+exports.LOGIN_TYPE = void 0;
+exports.LOGIN_TYPE = {
+    PASSWORD: 'PASSWORD',
+    GOOGLE: 'GOOGLE',
+    FACEBOOK: 'FACEBOOK',
+};

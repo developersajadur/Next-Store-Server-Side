@@ -22,7 +22,7 @@ app.use('/api/v1', routes_1.default);
 app.get('/', (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'Bicycle Server Is Running',
+        message: 'Next Store Server Is Running',
     });
 });
 app.use(globalErrorhandler_1.default);

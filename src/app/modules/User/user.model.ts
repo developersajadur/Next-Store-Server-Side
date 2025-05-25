@@ -25,7 +25,12 @@ const userSchema = new Schema<TUser>(
     password: {
       type: String,
       select: 0,
-      required: [true, 'Password is required'],
+      validate: {
+        validator: function (this: TUser) {
+          return this.loginType !== 'PASSWORD' || !!this.password;
+        },
+        message: 'Password is required for PASSWORD login type',
+      },
       minlength: [6, 'Password must be at least 6 characters long'],
     },
     role: {
@@ -60,14 +65,24 @@ const userSchema = new Schema<TUser>(
   },
 );
 
+
+userSchema.pre('validate', function (next) {
+  if (this.loginType === LOGIN_TYPE.PASSWORD && !this.password) {
+    this.invalidate('password', 'Password is required for PASSWORD login type');
+  }
+  next();
+});
+// Password hashing
 userSchema.pre('save', async function (next) {
   const user = this as TUser;
-  const password = user.password;
-  const hashedPassword = await bcrypt.hash(
-    password,
-    Number(config.salt_rounds),
-  ); 
-  user.password = hashedPassword;
+  if (user.loginType === LOGIN_TYPE.PASSWORD) {
+    const hashedPassword = await bcrypt.hash(
+      user.password as string,
+      Number(config.salt_rounds),
+    );
+    user.password = hashedPassword;
+  }
+
   next();
 });
 

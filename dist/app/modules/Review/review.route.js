@@ -16,4 +16,5 @@ router.get('/', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), review_con
 router.put('/update-review/:reviewId/product/:productId', (0, validateRequest_1.default)(review_validation_1.ReviewValidationSchema.updateReviewValidation), (0, auth_1.default)(user_constant_1.USER_ROLE.customer), review_controller_1.reviewController.updateReviewIntoDb);
 router.get('/product-reviews/:slug', review_controller_1.reviewController.getReviewBySlugForEachProduct);
 router.delete('/delete-review/:reviewId', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), review_controller_1.reviewController.deleteReviewFromDb);
+router.get('/get-review-by-id/:reviewId', (0, auth_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.customer), review_controller_1.reviewController.getSingleReviewById);
 exports.reviewRoute = router;

@@ -18,8 +18,8 @@ const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const user_model_1 = require("../User/user.model");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const auth_utils_1 = require("./auth.utils");
 const config_1 = __importDefault(require("../../config"));
+const jwtHelper_1 = require("../../helpers/jwtHelper");
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.UserModel.findOne({ email: payload === null || payload === void 0 ? void 0 : payload.email }).select('+password');
     if (!user) {
@@ -35,10 +35,10 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const jwtPayload = {
         userId: user === null || user === void 0 ? void 0 : user._id.toString(),
         email: user === null || user === void 0 ? void 0 : user.email,
-        phone: user.phone,
         role: user === null || user === void 0 ? void 0 : user.role,
+        loginType: user.loginType
     };
-    const token = (0, auth_utils_1.createToken)(jwtPayload, config_1.default.jwt_token_secret, config_1.default.jwt_refresh_expires_in);
+    const token = (0, jwtHelper_1.createToken)(jwtPayload, config_1.default.jwt_token_secret, config_1.default.jwt_refresh_expires_in);
     return { token };
 });
 exports.AuthServices = {

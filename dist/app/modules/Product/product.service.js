@@ -86,18 +86,15 @@ const updateSingleProductById = (_id, updatedProduct) => __awaiter(void 0, void 
     const result = yield product_model_1.ProductModel.findByIdAndUpdate(_id, Object.assign(Object.assign({}, updatedProduct), { updatedAt: new Date() }), { new: true });
     return result;
 });
-const deleteSingleProductById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const product = yield product_model_1.ProductModel.findOne({ _id, isDeleted: false });
-        if (!product || product.isDeleted) {
-            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
-        }
+const deleteMultipleOrSingleMediaById = (productsId) => __awaiter(void 0, void 0, void 0, function* () {
+    const products = yield product_model_1.ProductModel.find({
+        _id: { $in: productsId },
+        isDeleted: false,
+    }).lean();
+    if (products.length !== productsId.length) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'One or more media items not found or already deleted.');
     }
-    catch (error) {
-        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, error.message);
-    }
-    const result = yield product_model_1.ProductModel.findByIdAndUpdate(_id, { isDeleted: true, updatedAt: new Date() }, { new: true });
-    return result;
+    yield product_model_1.ProductModel.updateMany({ _id: { $in: productsId } }, { $set: { isDeleted: true } });
 });
 exports.ProductService = {
     createProductIntoDb,
@@ -105,5 +102,5 @@ exports.ProductService = {
     getSingleProductById,
     getSingleProductBySlug,
     updateSingleProductById,
-    deleteSingleProductById,
+    deleteMultipleOrSingleMediaById,
 };

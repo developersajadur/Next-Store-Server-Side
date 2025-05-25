@@ -27,9 +27,9 @@ router.put(
 );
 
 router.delete(
-  '/:id',
+  '/delete-products',
   auth(USER_ROLE.admin),
-  productController.deleteSingleProductById,
+  productController.deleteMultipleOrSingleMediaById,
 );
 
 export const productRoute = router;

@@ -17,12 +17,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../errors/AppError"));
-const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
-const auth_utils_1 = require("../modules/Auth/auth.utils");
+const catchAsync_1 = __importDefault(require("../helpers/catchAsync"));
 const user_model_1 = require("../modules/User/user.model");
+const jwtHelper_1 = require("../helpers/jwtHelper");
 const auth = (...requiredRoles) => {
     return (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const decoded = (0, auth_utils_1.tokenDecoder)(req);
+        const decoded = (0, jwtHelper_1.tokenDecoder)(req);
         const { role, userId } = decoded;
         const user = user_model_1.UserModel.findById(userId);
         if (!user) {

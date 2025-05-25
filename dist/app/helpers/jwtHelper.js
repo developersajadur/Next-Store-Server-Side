@@ -8,9 +8,9 @@ exports.tokenDecoder = exports.verifyToken = exports.createToken = void 0;
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const config_1 = __importDefault(require("../../config"));
-const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
+const AppError_1 = __importDefault(require("../errors/AppError"));
+const config_1 = __importDefault(require("../config"));
 const createToken = (jwtPayload, secret, expiresIn) => {
     return jsonwebtoken_1.default.sign(jwtPayload, secret, {
         expiresIn: expiresIn,

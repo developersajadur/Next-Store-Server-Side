@@ -1,14 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_route_1 = require("../modules/User/user.route");
 const auth_route_1 = require("../modules/Auth/auth.route");
-const order_route_1 = __importDefault(require("../modules/Order/order.route"));
 const review_route_1 = require("../modules/Review/review.route");
 const product_route_1 = require("../modules/Product/product.route");
+const payment_route_1 = require("../modules/Payment/payment.route");
+const order_route_1 = require("../modules/Order/order.route");
+const media_route_1 = require("../modules/Media/media.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -25,11 +24,19 @@ const moduleRoutes = [
     },
     {
         path: '/orders',
-        route: order_route_1.default,
+        route: order_route_1.orderRouter,
     },
     {
         path: '/reviews',
         route: review_route_1.reviewRoute,
+    },
+    {
+        path: '/payments',
+        route: payment_route_1.paymentRouter,
+    },
+    {
+        path: '/medias',
+        route: media_route_1.mediaRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

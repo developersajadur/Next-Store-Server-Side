@@ -93,10 +93,32 @@ const deleteReviewFromDb = (reviewId, userId) => __awaiter(void 0, void 0, void 
     const result = yield review_model_1.Review.findByIdAndUpdate(reviewId, { $set: { isDeleted: true } }, { new: true }).lean();
     return result;
 });
+const getSingleReviewById = (reviewId, role, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    if (role === user_constant_1.USER_ROLE.customer) {
+        const review = yield review_model_1.Review.findById(reviewId);
+        if (!review || (review === null || review === void 0 ? void 0 : review.isDeleted)) {
+            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Review Not Found');
+        }
+        const reviewUserId = review.userId.toString();
+        if (reviewUserId !== userId) {
+            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "You Cat't Access Others Review");
+        }
+        return review;
+    }
+    if (role === user_constant_1.USER_ROLE.admin) {
+        const review = yield review_model_1.Review.findById(reviewId);
+        if (!review || review.isDeleted) {
+            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Review Not Found');
+        }
+        return review;
+    }
+    return null;
+});
 exports.ReviewService = {
     createReviewIntoDb,
     getAllReviewsFromDb,
     updateReviewIntoDb,
     getReviewBySlugForEachProduct,
-    deleteReviewFromDb
+    deleteReviewFromDb,
+    getSingleReviewById
 };

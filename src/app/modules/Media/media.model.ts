@@ -6,7 +6,12 @@ const MediaSchema = new Schema<TMedia>(
   {
     url: {
       type: String,
-      required: true
+      required: true,
+    },
+    addedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     fileName: {
       type: String,
@@ -28,17 +33,15 @@ MediaSchema.pre(/^find/, function (this: mongoose.Query<any, any>, next) {
   next();
 });
 
-
 MediaSchema.pre('aggregate', function (this: mongoose.Aggregate<any[]>, next) {
   const pipeline = this.pipeline();
 
-  const hasMatchStage = pipeline.some(stage => '$match' in stage);
+  const hasMatchStage = pipeline.some((stage) => '$match' in stage);
   if (!hasMatchStage) {
     pipeline.unshift({ $match: { isDeleted: false } });
   }
 
   next();
 });
-
 
 export const MediaModel = model<TMedia>('Media', MediaSchema);

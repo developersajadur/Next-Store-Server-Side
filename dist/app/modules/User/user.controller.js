@@ -14,24 +14,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userController = void 0;
 const http_status_1 = __importDefault(require("http-status"));
-const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
-const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
+const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
+const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
 const user_service_1 = require("./user.service");
-const auth_utils_1 = require("../Auth/auth.utils");
+const jwtHelper_1 = require("../../helpers/jwtHelper");
 const createUserIntoDb = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_service_1.userService.createUserIntoDb(req === null || req === void 0 ? void 0 : req.body);
+    const { user, token } = yield user_service_1.userService.createUserIntoDb(req === null || req === void 0 ? void 0 : req.body);
     const responseData = {
         _id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
+        loginType: user.loginType
     };
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
         message: 'WOW! Registration successful',
-        data: responseData,
+        data: { responseData, token },
     });
 }));
 const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -53,7 +54,7 @@ const getSingleUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     });
 }));
 const updateUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decoded = (0, auth_utils_1.tokenDecoder)(req);
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     const updatedUser = yield user_service_1.userService.updateUser(userId, req.body);
     (0, sendResponse_1.default)(res, {
@@ -64,7 +65,7 @@ const updateUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     });
 }));
 const changePassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decoded = (0, auth_utils_1.tokenDecoder)(req); // Assuming tokenDecoder extracts the user ID from the token
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { newPassword, currentPassword } = req.body;
     const { userId } = decoded;
     // Call the changePassword service
