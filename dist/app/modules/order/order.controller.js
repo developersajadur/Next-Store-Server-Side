@@ -18,7 +18,7 @@ const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const auth_utils_1 = require("../Auth/auth.utils");
 const user_model_1 = require("../User/user.model");
-const order_service_1 = require("./order.service");
+const order_service_1 = require("../Order/order.service");
 const http_status_1 = __importDefault(require("http-status"));
 const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log(req.body);

@@ -1,14 +1,23 @@
-import Order from './order.model';
+import mongoose from 'mongoose';
+import Order from '../Order/order.model';
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
-import { orderUtils } from './order.utils';
-import { TUser } from '../User/user.interface';
-import { BicycleModel } from '../Bicycle/bicycle.model';
+import { TUser, TUserRole } from '../User/user.interface';
 import QueryBuilder from '../../builders/QueryBuilder';
+import { ProductModel } from '../Product/product.model';
+import { PaymentModel } from '../Payment/payment.model';
+import { IOrderStatus } from './order.interface';
+import { generateTransactionId } from '../../helpers/transactionIdGenerator';
+import { paymentUtils } from '../Payment/payment.utils';
+import { orderSearchableFields } from './order.constant';
+import { USER_ROLE } from '../User/user.constant';
 
 const createOrder = async (
   user: TUser,
-  payload: { products: { product: string; quantity: number }[] },
+  payload: {
+    products: { product: string; quantity: number }[];
+    method: 'online' | 'cash';
+  },
   client_ip: string,
 ) => {
   if (!payload?.products?.length) {
@@ -18,169 +27,187 @@ const createOrder = async (
   const products = payload.products;
   let totalPrice = 0;
 
-  // Fetch product details & update stock
   const productDetails = await Promise.all(
     products.map(async (item) => {
-      const product = await BicycleModel.findById(item.product);
-      if (!product) {
+      const product = await ProductModel.findById(item.product);
+      if (!product || product.isDeleted) {
         throw new AppError(httpStatus.NOT_FOUND, `Product not found`);
       }
       if (!product.inStock || product.stockQuantity < item.quantity) {
         throw new AppError(
           httpStatus.NOT_ACCEPTABLE,
-          `Not enough stock for ${product.name}`,
+          `Not enough stock for ${product.title}`,
         );
       }
-
-      // Deduct stock
       product.stockQuantity -= item.quantity;
 
-      // If stock reaches 0, set inStock to false
       if (product.stockQuantity === 0) {
         product.inStock = false;
       }
 
-      // Save updated product stock
       await product.save();
 
-      const subtotal = (product.price || 0) * item.quantity;
+      const subtotal = product.price * item.quantity;
       totalPrice += subtotal;
 
       return { product: product._id, quantity: item.quantity };
     }),
   );
 
-  // Create the order
   const order = await Order.create({
-    user: user._id,
+    userId: user._id,
     products: productDetails,
     totalPrice,
   });
 
-  // Payment integration
-  const shurjopayPayload = {
-    amount: totalPrice,
-    order_id: order._id,
-    currency: 'BDT',
-    customer_name: user.name,
-    customer_address: user.address,
-    customer_email: user.email,
-    customer_phone: user.phone,
-    customer_city: user.city,
-    client_ip,
-  };
+  if (payload.method === 'online') {
+    const shurjopayPayload = {
+      amount: totalPrice,
+      order_id: order._id,
+      currency: 'BDT',
+      customer_name: user.name,
+      customer_address: user.address,
+      customer_email: user.email,
+      customer_phone: user.phone,
+      customer_city: user.city,
+      client_ip,
+    };
 
-  const payment = await orderUtils.makePaymentAsync(shurjopayPayload);
+    const payment = await paymentUtils.makePaymentAsync(shurjopayPayload);
 
-  if (payment?.transactionStatus) {
-    await Order.findByIdAndUpdate(order._id, {
-      $set: {
-        transaction: {
-          id: payment.sp_order_id,
-          transactionStatus: payment.transactionStatus,
-        },
-      },
-    });
+    if (payment?.transactionStatus && payment.checkout_url) {
+      await PaymentModel.create({
+        userId: user._id,
+        orderId: order._id,
+        amount: totalPrice,
+        transactionId: generateTransactionId(),
+        gatewayResponse: payment.transactionStatus,
+        method: payload.method,
+      });
+    }
+
+    return payment.checkout_url;
   }
-
-  return payment.checkout_url;
+  return;
 };
 
 const getOrders = async (query: Record<string, unknown>) => {
-  const orderQuery = new QueryBuilder(Order.find(query), query)
+  const productQuery = new QueryBuilder(Order.find().populate('userId'), query)
+    .search(orderSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await orderQuery.modelQuery;
-  return result;
+  const result = await productQuery.modelQuery;
+  const meta = await productQuery.countTotal();
+  return { data: result, meta };
 };
 
-const verifyPayment = async (order_id: string) => {
-  const verifiedPayment = await orderUtils.verifyPaymentAsync(order_id);
-
-  if (verifiedPayment.length) {
-    await Order.findOneAndUpdate(
-      {
-        'transaction.id': order_id,
-      },
-      {
-        'transaction.bank_status': verifiedPayment[0].bank_status,
-        'transaction.sp_code': verifiedPayment[0].sp_code,
-        'transaction.sp_message': verifiedPayment[0].sp_message,
-        'transaction.transactionStatus': verifiedPayment[0].transaction_status,
-        'transaction.method': verifiedPayment[0].method,
-        'transaction.date_time': verifiedPayment[0].date_time,
-        status:
-          verifiedPayment[0].bank_status == 'Success'
-            ? 'Paid'
-            : verifiedPayment[0].bank_status == 'Failed'
-              ? 'Pending'
-              : verifiedPayment[0].bank_status == 'Cancel'
-                ? 'Cancelled'
-                : '',
-      },
-    );
-  }
-
-  return verifiedPayment;
-};
-
-const updateOrderStatus = async (
+const getSingleOrderById = async (
   orderId: string,
-  status: {
-    status: 'Pending' | 'Paid' | 'Shipped' | 'Completed' | 'Cancelled';
-  },
+  role: TUserRole,
+  userId: string,
 ) => {
-  // console.log(status.status);  // Log the status correctly
-
-  // Find the order
-  const order = await Order.findById(orderId);
-  if (!order) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
+  if (role === USER_ROLE.customer) {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Order Not Found');
+    }
+    const orderUserId = order.userId.toString();
+    if (orderUserId !== userId) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You Cat't Access Others Order",
+      );
+    }
+    return order;
   }
 
-  // Define allowed transitions
-  const allowedTransitions: Record<string, string[]> = {
-    Pending: ['Paid', 'Cancelled'],
-    Paid: ['Shipped', 'Cancelled'],
-    Shipped: ['Completed', 'Cancelled'],
-    Completed: [],
-    Cancelled: [],
-  };
-
-  // Get the current status and check if the status transition is allowed
-  const currentStatus = order.status;
-  if (!allowedTransitions[currentStatus].includes(status.status)) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      `Cannot change status from "${currentStatus}" to "${status.status}"`,
-    );
+  if (role === USER_ROLE.admin) {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Order Not Found');
+    }
+    return order;
   }
+  return null;
+};
 
-  // Update the order status
-  const updatedOrder = await Order.findByIdAndUpdate(
-    orderId,
-    { status: status.status },
-    { new: true },
-  );
-  if (!updatedOrder) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
+const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const order = await Order.findById(orderId).session(session);
+    if (!order) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
+    }
+
+    const payment = await PaymentModel.findOne({
+      orderId: orderId,
+      userId: order.userId,
+    }).session(session);
+
+    if (
+      !payment ||
+      payment.status === 'failed' ||
+      payment.status === 'pending' ||
+      payment.status === 'refunded'
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Order Have No Payment Record',
+      );
+    }
+
+    const allowedTransitions: Record<IOrderStatus, IOrderStatus[]> = {
+      Pending: ['Confirmed', 'Cancelled'],
+      Confirmed: ['Shipped', 'Cancelled'],
+      Shipped: ['Delivered', 'Cancelled'],
+      Delivered: ['Returned'],
+      Cancelled: [],
+      Returned: [],
+    };
+
+    const currentStatus = order.status as IOrderStatus;
+    const nextStatus = status;
+
+    if (!allowedTransitions[currentStatus].includes(nextStatus)) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Cannot change status from "${currentStatus}" to "${nextStatus}"`,
+      );
+    }
+
+    order.status = nextStatus;
+
+    if (nextStatus === 'Delivered') {
+      order.DeliveredAt = new Date();
+    }
+
+    await order.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  return updatedOrder;
 };
 
 const getOrdersForMe = async (userId: string) => {
-  const data = await Order.find({ user: userId }).lean();
+  const data = await Order.find({ userId }).lean();
   return data;
 };
 
 export const orderService = {
   createOrder,
   getOrders,
-  verifyPayment,
   getOrdersForMe,
   updateOrderStatus,
+  getSingleOrderById,
 };

@@ -1,27 +1,37 @@
 import { Router } from 'express';
-import { biCycleRoute } from '../modules/Bicycle/bicycle.route';
 import { userRoute } from '../modules/User/user.route';
 import { authRoute } from '../modules/Auth/auth.route';
-import orderRouter from '../modules/order/order.router';
+import orderRouter from '../modules/Order/order.route';
+import { reviewRoute } from '../modules/Review/review.route';
+import { productRoute } from '../modules/Product/product.route';
+import paymentRouter from '../modules/Payment/payment.route';
 
 const router = Router();
 
 const moduleRoutes = [
   {
-    path: '/bicycles',
-    route: biCycleRoute,
+    path: '/products',
+    route: productRoute,
   },
   {
     path: '/users',
     route: userRoute,
   },
   {
-    path: '/',
+    path: '/auth',
     route: authRoute,
   },
   {
-    path: '/order',
+    path: '/orders',
     route: orderRouter,
+  },
+  {
+    path: '/reviews',
+    route: reviewRoute,
+  },
+  {
+    path: '/payments',
+    route: paymentRouter,
   },
 ];
 

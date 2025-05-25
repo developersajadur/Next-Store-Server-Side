@@ -1,9 +1,8 @@
 import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import config from '../../config';
-import { TUser } from './user.interface';
+import { LOGIN_TYPE, TUser } from './user.interface';
 
-// User schema definition
 const userSchema = new Schema<TUser>(
   {
     name: {
@@ -14,7 +13,7 @@ const userSchema = new Schema<TUser>(
     phone: {
       type: String,
       required: [true, 'Number is required'],
-      match: [/^\d{11}$/, 'Invalid phone number format'], // Optional: Validate 11-digit numbers
+      match: [/^\d{11}$/, 'Invalid phone number format'],
     },
     email: {
       type: String,
@@ -49,6 +48,12 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
+    loginType: {
+      type: String,
+      enum: Object.values(LOGIN_TYPE),
+      required: true,
+      default: LOGIN_TYPE.PASSWORD,
+    },
   },
   {
     timestamps: true,
@@ -61,10 +66,9 @@ userSchema.pre('save', async function (next) {
   const hashedPassword = await bcrypt.hash(
     password,
     Number(config.salt_rounds),
-  );
+  ); 
   user.password = hashedPassword;
   next();
 });
 
-// Create the Mongoose model
 export const UserModel = model<TUser>('User', userSchema);

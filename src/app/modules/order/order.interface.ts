@@ -1,22 +1,29 @@
-import { Document, Types } from 'mongoose';
+import { Types } from "mongoose";
 
-export interface IOrder extends Document {
-  user: Types.ObjectId;
+export const OrderStatus = {
+  Pending: 'Pending',
+  Confirmed: 'Confirmed',
+  Shipped: 'Shipped',
+  Delivered: 'Delivered',
+  Cancelled: 'Cancelled',
+  Returned: 'Returned',
+} as const;
+
+export type IOrderStatus = keyof typeof OrderStatus;
+
+export interface IOrder {
+  userId: Types.ObjectId;
   products: {
     product: Types.ObjectId;
     quantity: number;
   }[];
+  shippingAddress: string;
+  shippingCost: number;
+  couponCode?: number;
   totalPrice: number;
-  status: 'Pending' | 'Paid' | 'Shipped' | 'Completed' | 'Cancelled';
-  transaction: {
-    id: string;
-    transactionStatus: string;
-    bank_status: string;
-    sp_code: string;
-    sp_message: string;
-    method: string;
-    date_time: string;
-  };
+  note?: string;
+  status: IOrderStatus;
+  DeliveredAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

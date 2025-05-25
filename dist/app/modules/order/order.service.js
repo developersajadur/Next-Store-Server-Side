@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderService = void 0;
-const order_model_1 = __importDefault(require("./order.model"));
+const order_model_1 = __importDefault(require("../Order/order.model"));
 const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
-const order_utils_1 = require("./order.utils");
-const bicycle_model_1 = require("../Bicycle/bicycle.model");
+const order_utils_1 = require("../Order/order.utils");
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));
+const product_model_1 = require("../Product/product.model");
 const createOrder = (user, payload, client_ip) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     if (!((_a = payload === null || payload === void 0 ? void 0 : payload.products) === null || _a === void 0 ? void 0 : _a.length)) {
@@ -28,12 +28,12 @@ const createOrder = (user, payload, client_ip) => __awaiter(void 0, void 0, void
     let totalPrice = 0;
     // Fetch product details & update stock
     const productDetails = yield Promise.all(products.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-        const product = yield bicycle_model_1.BicycleModel.findById(item.product);
+        const product = yield product_model_1.ProductModel.findById(item.product);
         if (!product) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, `Product not found`);
         }
         if (!product.inStock || product.stockQuantity < item.quantity) {
-            throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, `Not enough stock for ${product.name}`);
+            throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, `Not enough stock for ${product.title}`);
         }
         // Deduct stock
         product.stockQuantity -= item.quantity;

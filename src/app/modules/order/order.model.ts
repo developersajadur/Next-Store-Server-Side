@@ -3,9 +3,9 @@ import { IOrder } from './order.interface';
 
 const OrderSchema = new Schema<IOrder>(
   {
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: 'User',
       required: true,
     },
     products: [
@@ -18,31 +18,53 @@ const OrderSchema = new Schema<IOrder>(
         quantity: {
           type: Number,
           required: true,
+          min: [1, 'Quantity must be at least 1'],
         },
       },
     ],
+    shippingAddress: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    shippingCost: {
+      type: Number,
+      required: true,
+      min: [0, 'Shipping cost must be a non-negative number'],
+    },
+    couponCode: {
+      type: Number,
+      default: null,
+    },
     totalPrice: {
       type: Number,
       required: true,
+      min: [0, 'Total price must be a non-negative number'],
+    },
+    note: {
+      type: String,
+      default: '',
+      trim: true,
     },
     status: {
       type: String,
-      enum: ['Pending', 'Paid', 'Shipped', 'Completed', 'Cancelled'],
+      enum: [
+        'Pending',
+        'Confirmed',
+        'Shipped',
+        'Delivered',
+        'Cancelled',
+        'Returned',
+      ],
       default: 'Pending',
     },
-    transaction: {
-      id: String,
-      transactionStatus: String,
-      bank_status: String,
-      sp_code: String,
-      sp_message: String,
-      method: String,
-      date_time: String,
+    DeliveredAt: {
+      type: Date
     },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Order = model<IOrder>('Order', OrderSchema);

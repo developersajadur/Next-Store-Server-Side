@@ -1,10 +1,10 @@
 {
-  "name": "l2_assainment_2",
+  "name": "next-store",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start:prod": "node ./dist/server.js",
-    "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node ./dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

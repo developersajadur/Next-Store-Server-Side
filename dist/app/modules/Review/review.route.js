@@ -1,0 +1,19 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reviewRoute = void 0;
+const express_1 = require("express");
+const auth_1 = __importDefault(require("../../middlewares/auth"));
+const review_controller_1 = require("./review.controller");
+const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
+const review_validation_1 = require("./review.validation");
+const user_constant_1 = require("../User/user.constant");
+const router = (0, express_1.Router)();
+router.post('/create-review', (0, validateRequest_1.default)(review_validation_1.ReviewValidationSchema.createReviewValidation), (0, auth_1.default)(user_constant_1.USER_ROLE.customer), review_controller_1.reviewController.createReviewIntoDb);
+router.get('/', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), review_controller_1.reviewController.getAllReviewsFromDb);
+router.put('/update-review/:reviewId/product/:productId', (0, validateRequest_1.default)(review_validation_1.ReviewValidationSchema.updateReviewValidation), (0, auth_1.default)(user_constant_1.USER_ROLE.customer), review_controller_1.reviewController.updateReviewIntoDb);
+router.get('/product-reviews/:slug', review_controller_1.reviewController.getReviewBySlugForEachProduct);
+router.delete('/delete-review/:reviewId', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), review_controller_1.reviewController.deleteReviewFromDb);
+exports.reviewRoute = router;

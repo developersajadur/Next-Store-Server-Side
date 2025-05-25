@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.productRoute = void 0;
+const express_1 = __importDefault(require("express"));
+const product_controller_1 = require("./product.controller");
+const auth_1 = __importDefault(require("../../middlewares/auth"));
+const user_constant_1 = require("../User/user.constant");
+const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
+const product_validation_1 = require("./product.validation");
+const router = express_1.default.Router();
+router.post('/create-product', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), (0, validateRequest_1.default)(product_validation_1.ProductValidationSchema.createProductValidation), product_controller_1.productController.createProduct);
+router.get('/', product_controller_1.productController.getAllProducts);
+router.get('get-product-by-id/:id', product_controller_1.productController.getSingleProductById);
+router.get('/get-product-by-slug/:slug', product_controller_1.productController.getSingleProductBySlug);
+router.put('/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), product_controller_1.productController.updateSingleProductById);
+router.delete('/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), product_controller_1.productController.deleteSingleProductById);
+exports.productRoute = router;
