@@ -1,36 +1,37 @@
 import { Request } from 'express';
 import { MediaModel } from './media.model';
-import { tokenDecoder } from '../../helpers/jwtHelper';
 import { fileUploads } from '../../helpers/fileUploader';
 import QueryBuilder from '../../builders/QueryBuilder';
 import { mediaSearchableFields } from './media.constant';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
+import { TTokenUser } from '../Auth/auth.interface';
 
-const uploadSingleMediaIntoDB = async (req: Request) => {
-  const { userId } = tokenDecoder(req);
+const uploadSingleMediaIntoDB = async (req: Request & {user?: TTokenUser}) => {
+  
   const media = req.file;
+    const user = req.user;
   if (!media) return;
 
   const uploaded = await fileUploads.uploadToCloudinary(media);
 
   return await MediaModel.create({
-    addedBy: userId,
+    addedBy: user?.userId,
     fileName: media.originalname,
     url: uploaded.secure_url,
   });
 };
 
-const uploadMultipleMediaIntoDB = async (req: Request) => {
-  const { userId } = tokenDecoder(req);
+const uploadMultipleMediaIntoDB = async (req: Request & {user?: TTokenUser}) => {
   const files = req.files as Express.Multer.File[];
+    const user = req.user;
 
   const uploadedFiles = await Promise.all(
     files.map(file => fileUploads.uploadToCloudinary(file)),
   );
 
   const documents = uploadedFiles.map((file, i) => ({
-    addedBy: userId,
+    addedBy: user?.userId,
     fileName: files[i].originalname,
     url: file.secure_url,
   }));

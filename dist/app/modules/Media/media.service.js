@@ -14,30 +14,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mediaService = void 0;
 const media_model_1 = require("./media.model");
-const jwtHelper_1 = require("../../helpers/jwtHelper");
 const fileUploader_1 = require("../../helpers/fileUploader");
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));
 const media_constant_1 = require("./media.constant");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 const uploadSingleMediaIntoDB = (req) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = (0, jwtHelper_1.tokenDecoder)(req);
     const media = req.file;
+    const user = req.user;
     if (!media)
         return;
     const uploaded = yield fileUploader_1.fileUploads.uploadToCloudinary(media);
     return yield media_model_1.MediaModel.create({
-        addedBy: userId,
+        addedBy: user === null || user === void 0 ? void 0 : user.userId,
         fileName: media.originalname,
         url: uploaded.secure_url,
     });
 });
 const uploadMultipleMediaIntoDB = (req) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = (0, jwtHelper_1.tokenDecoder)(req);
     const files = req.files;
+    const user = req.user;
     const uploadedFiles = yield Promise.all(files.map(file => fileUploader_1.fileUploads.uploadToCloudinary(file)));
     const documents = uploadedFiles.map((file, i) => ({
-        addedBy: userId,
+        addedBy: user === null || user === void 0 ? void 0 : user.userId,
         fileName: files[i].originalname,
         url: file.secure_url,
     }));

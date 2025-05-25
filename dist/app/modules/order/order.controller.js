@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
 const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
-const user_model_1 = require("../User/user.model");
 const order_service_1 = require("../Order/order.service");
 const http_status_1 = __importDefault(require("http-status"));
 const jwtHelper_1 = require("../../helpers/jwtHelper");
@@ -23,8 +22,7 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     // console.log(userId);
-    const user = (yield user_model_1.UserModel.findById(userId));
-    const order = yield order_service_1.orderService.createOrder(user, req.body, req.ip);
+    const order = yield order_service_1.orderService.createOrder(userId, req.body, req.ip);
     const orderResponse = JSON.parse(JSON.stringify(order));
     (0, sendResponse_1.default)(res, {
         success: true,

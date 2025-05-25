@@ -19,21 +19,14 @@ const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 const product_constant_1 = require("./product.constant");
 const product_model_1 = require("./product.model");
-const slugify_1 = __importDefault(require("slugify"));
+const generateUniqueSlug_1 = require("../../helpers/generateUniqueSlug");
 const createProductIntoDb = (product) => __awaiter(void 0, void 0, void 0, function* () {
-    let slug = (0, slugify_1.default)(product.title, { lower: true, strict: true });
-    let counter = 1;
-    while (yield product_model_1.ProductModel.findOne({ slug })) {
-        slug =
-            (0, slugify_1.default)(product.title, { lower: true, strict: true }) + `-${counter}`;
-        counter++;
-    }
-    product.slug = slug;
+    product.slug = yield (0, generateUniqueSlug_1.generateUniqueSlug)(product.title, product_model_1.ProductModel);
     const result = yield product_model_1.ProductModel.create(product);
     return result;
 });
 const getAllProducts = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({ isDeleted: false }).populate('author'), query)
+    const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({ isDeleted: false }), query)
         .search(product_constant_1.productSearchableFields)
         .filter()
         .sort()
@@ -70,14 +63,7 @@ const updateSingleProductById = (_id, updatedProduct) => __awaiter(void 0, void 
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
         }
         if (updatedProduct.title) {
-            let slug = (0, slugify_1.default)(product.title, { lower: true, strict: true });
-            let counter = 1;
-            while (yield product_model_1.ProductModel.findOne({ slug })) {
-                slug =
-                    (0, slugify_1.default)(product.title, { lower: true, strict: true }) + `-${counter}`;
-                counter++;
-            }
-            updatedProduct.slug = slug;
+            updatedProduct.slug = yield (0, generateUniqueSlug_1.generateUniqueSlug)(product.title, product_model_1.ProductModel);
         }
     }
     catch (error) {

@@ -4,7 +4,7 @@ import { TCategory } from './category.interface';
 
 const CategorySchema = new Schema<TCategory>(
   {
-    name: {
+    title: {
       type: String,
       required: true,
       trim: true,

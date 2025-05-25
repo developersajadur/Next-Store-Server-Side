@@ -4,7 +4,7 @@ exports.BrandModel = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const mongoose_1 = require("mongoose");
 const BrandSchema = new mongoose_1.Schema({
-    name: {
+    title: {
         type: String,
         required: true,
         trim: true,

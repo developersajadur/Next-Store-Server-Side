@@ -53,6 +53,10 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     loginType: {
       type: String,
       enum: Object.values(LOGIN_TYPE),

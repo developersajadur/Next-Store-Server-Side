@@ -11,15 +11,18 @@ import { generateTransactionId } from '../../helpers/transactionIdGenerator';
 import { paymentUtils } from '../Payment/payment.utils';
 import { orderSearchableFields } from './order.constant';
 import { USER_ROLE } from '../User/user.constant';
+import { UserModel } from '../User/user.model';
 
 const createOrder = async (
-  user: TUser,
+  userId: string,
   payload: {
     products: { product: string; quantity: number }[];
     method: 'online' | 'cash';
   },
   client_ip: string,
 ) => {
+    const user = await UserModel.findById(userId) as TUser;
+    if(!user || user.isBlocked)
   if (!payload?.products?.length) {
     throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Order is not specified');
   }

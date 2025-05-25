@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export type TCategory = {
   _id: Types.ObjectId;
-  name: string;
+  title: string;
   slug: string;
   description?: string;
   image: Types.ObjectId;

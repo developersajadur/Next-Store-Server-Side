@@ -20,22 +20,31 @@ const AppError_1 = __importDefault(require("../errors/AppError"));
 const catchAsync_1 = __importDefault(require("../helpers/catchAsync"));
 const user_model_1 = require("../modules/User/user.model");
 const jwtHelper_1 = require("../helpers/jwtHelper");
+const config_1 = __importDefault(require("../config"));
 const auth = (...requiredRoles) => {
     return (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const decoded = (0, jwtHelper_1.tokenDecoder)(req);
-        const { role, userId } = decoded;
-        const user = user_model_1.UserModel.findById(userId);
+        const token = req.headers.authorization;
+        if (!token) {
+            throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'You are not authorized!');
+        }
+        const verifiedUser = (0, jwtHelper_1.verifyToken)(token, config_1.default.jwt_token_secret);
+        const user = user_model_1.UserModel.findById(verifiedUser.userId);
         if (!user) {
             throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'User not found!');
         }
         if (user.isBlocked) {
             throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'User is blocked!');
         }
-        if (requiredRoles && !requiredRoles.includes(role)) {
+        if (user.isDeleted) {
+            throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'User is Deleted!');
+        }
+        if (verifiedUser.exp && Date.now() >= verifiedUser.exp * 1000) {
+            throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'Token expired.');
+        }
+        if (requiredRoles && !requiredRoles.includes(verifiedUser.role)) {
             throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'You are not authorized!');
         }
-        req.user = decoded;
-        //  ( req as any).user = user;
+        req.user = verifiedUser;
         next();
     }));
 };

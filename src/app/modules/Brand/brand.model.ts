@@ -4,7 +4,7 @@ import { TBrand } from './brand.interface';
 
 const BrandSchema = new Schema<TBrand>(
   {
-    name: {
+    title: {
       type: String,
       required: true,
       trim: true,

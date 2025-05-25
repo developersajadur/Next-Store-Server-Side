@@ -24,11 +24,14 @@ const transactionIdGenerator_1 = require("../../helpers/transactionIdGenerator")
 const payment_utils_1 = require("../Payment/payment.utils");
 const order_constant_1 = require("./order.constant");
 const user_constant_1 = require("../User/user.constant");
-const createOrder = (user, payload, client_ip) => __awaiter(void 0, void 0, void 0, function* () {
+const user_model_1 = require("../User/user.model");
+const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    if (!((_a = payload === null || payload === void 0 ? void 0 : payload.products) === null || _a === void 0 ? void 0 : _a.length)) {
-        throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, 'Order is not specified');
-    }
+    const user = yield user_model_1.UserModel.findById(userId);
+    if (!user || user.isBlocked)
+        if (!((_a = payload === null || payload === void 0 ? void 0 : payload.products) === null || _a === void 0 ? void 0 : _a.length)) {
+            throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, 'Order is not specified');
+        }
     const products = payload.products;
     let totalPrice = 0;
     const productDetails = yield Promise.all(products.map((item) => __awaiter(void 0, void 0, void 0, function* () {

@@ -66,6 +66,10 @@ const userSchema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
     loginType: {
         type: String,
         enum: Object.values(user_interface_1.LOGIN_TYPE),

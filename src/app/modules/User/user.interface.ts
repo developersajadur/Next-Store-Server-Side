@@ -21,6 +21,7 @@ export type TUser = {
   address?: string;
   city?: string;
   isBlocked: boolean;
+  isDeleted: boolean;
   loginType: TLoginType;
   createdAt?: Date;
   updatedAt?: Date;

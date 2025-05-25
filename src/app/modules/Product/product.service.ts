@@ -5,27 +5,17 @@ import status from 'http-status';
 import { productSearchableFields } from './product.constant';
 import { TProduct } from './product.interface';
 import { ProductModel } from './product.model';
-import slugify from 'slugify';
+import { generateUniqueSlug } from '../../helpers/generateUniqueSlug';
 
 const createProductIntoDb = async (product: TProduct) => {
-  let slug = slugify(product.title, { lower: true, strict: true });
-  let counter = 1;
-
-  while (await ProductModel.findOne({ slug })) {
-    slug =
-      slugify(product.title, { lower: true, strict: true }) + `-${counter}`;
-    counter++;
-  }
-
-  product.slug = slug;
-
+  product.slug = await generateUniqueSlug(product.title, ProductModel);
   const result = await ProductModel.create(product);
   return result;
 };
 
 const getAllProducts = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(
-    ProductModel.find({ isDeleted: false }).populate('author'),
+    ProductModel.find({ isDeleted: false }),
     query,
   )
     .search(productSearchableFields)
@@ -71,16 +61,10 @@ const updateSingleProductById = async (
       throw new AppError(status.NOT_FOUND, 'Product Not Found');
     }
     if (updatedProduct.title) {
-      let slug = slugify(product.title, { lower: true, strict: true });
-      let counter = 1;
-
-      while (await ProductModel.findOne({ slug })) {
-        slug =
-          slugify(product.title, { lower: true, strict: true }) + `-${counter}`;
-        counter++;
-      }
-
-      updatedProduct.slug = slug;
+      updatedProduct.slug = await generateUniqueSlug(
+        product.title,
+        ProductModel,
+      );
     }
   } catch (error: any) {
     throw new AppError(status.BAD_REQUEST, error.message);

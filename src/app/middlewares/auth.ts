@@ -6,27 +6,42 @@ import AppError from '../errors/AppError';
 import catchAsync from '../helpers/catchAsync';
 import { UserModel } from '../modules/User/user.model';
 import { TUserRole } from '../modules/User/user.interface';
-import { JwtPayload } from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
-import { tokenDecoder } from '../helpers/jwtHelper';
+import { verifyToken } from '../helpers/jwtHelper';
+import config from '../config';
+import { TTokenUser } from '../modules/Auth/auth.interface';
 
 const auth = (...requiredRoles: TUserRole[]) => {
-  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const decoded = tokenDecoder(req);
-    const { role, userId } = decoded;
-    const user: any = UserModel.findById(userId);
+  return catchAsync(async (    req: Request & { user?:TTokenUser }, res: Response, next: NextFunction) => {
+    const token = req.headers.authorization;
+    if (!token) {
+      throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+    }
+    
+    const verifiedUser = verifyToken(
+      token as string,
+      config.jwt_token_secret as string,
+    ) as TTokenUser;
+    const user: any = UserModel.findById(verifiedUser.userId);
     if (!user) {
       throw new AppError(status.UNAUTHORIZED, 'User not found!');
     }
     if (user.isBlocked) {
       throw new AppError(status.FORBIDDEN, 'User is blocked!');
     }
+    if (user.isDeleted) {
+      throw new AppError(status.FORBIDDEN, 'User is Deleted!');
+    }
 
-    if (requiredRoles && !requiredRoles.includes(role)) {
+    if (verifiedUser.exp && Date.now() >= verifiedUser.exp * 1000) {
+      throw new AppError(status.UNAUTHORIZED, 'Token expired.');
+    }
+
+    if (requiredRoles && !requiredRoles.includes(verifiedUser.role)) {
       throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
     }
-    (req as any).user = decoded as JwtPayload & { role: string };
-    //  ( req as any).user = user;
+
+    req.user = verifiedUser
     next();
   });
 };

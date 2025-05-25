@@ -6,6 +6,8 @@ import { productRoute } from '../modules/Product/product.route';
 import { paymentRouter } from '../modules/Payment/payment.route';
 import { orderRouter } from '../modules/Order/order.route';
 import { mediaRouter } from '../modules/Media/media.route';
+import { categoryRouter } from '../modules/Category/category.route';
+import { brandRouter } from '../modules/Brand/brand.route';
 
 const router = Router();
 
@@ -37,6 +39,14 @@ const moduleRoutes = [
   {
     path: '/medias',
     route: mediaRouter,
+  },
+  {
+    path: '/categories',
+    route: categoryRouter,
+  },
+  {
+    path: '/brands',
+    route: brandRouter,
   },
 ];
 

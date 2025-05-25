@@ -10,3 +10,11 @@ export type TJwtPayload = {
   role: string;
   loginType: string;
 };
+export type TTokenUser = {
+  userId: string;
+  email: string;
+  role: 'admin' | 'customer';
+  loginType: string;
+  iat: number;
+  exp: number
+};

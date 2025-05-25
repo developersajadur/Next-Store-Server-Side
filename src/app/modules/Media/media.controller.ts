@@ -35,6 +35,7 @@ const getAllMedia = catchAsync(async (req, res) => {
 });
 
 const getSingleMediaById = catchAsync(async (req, res) => {
+  
   const result = await mediaService.getSingleMediaById(req.params.mediaId);
   sendResponse(res, {
     success: true,

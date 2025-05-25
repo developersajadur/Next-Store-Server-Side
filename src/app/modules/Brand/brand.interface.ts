@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export type TBrand = {
   _id: Types.ObjectId;
-  name: string;
+  title: string;
   slug: string;
   image: Types.ObjectId;
   description?: string;

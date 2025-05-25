@@ -1,7 +1,5 @@
 import catchAsync from '../../helpers/catchAsync';
 import sendResponse from '../../helpers/sendResponse';
-import { TUser } from '../User/user.interface';
-import { UserModel } from '../User/user.model';
 import { orderService } from '../Order/order.service';
 import httpStatus from 'http-status';
 import { tokenDecoder } from '../../helpers/jwtHelper';
@@ -10,9 +8,7 @@ const createOrder = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
   const { userId } = decoded;
   // console.log(userId);
-
-  const user = (await UserModel.findById(userId)) as TUser;
-  const order = await orderService.createOrder(user, req.body, req.ip!);
+  const order = await orderService.createOrder(userId, req.body, req.ip!);
 
   const orderResponse = JSON.parse(JSON.stringify(order));
 

@@ -8,6 +8,8 @@ const product_route_1 = require("../modules/Product/product.route");
 const payment_route_1 = require("../modules/Payment/payment.route");
 const order_route_1 = require("../modules/Order/order.route");
 const media_route_1 = require("../modules/Media/media.route");
+const category_route_1 = require("../modules/Category/category.route");
+const brand_route_1 = require("../modules/Brand/brand.route");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -37,6 +39,14 @@ const moduleRoutes = [
     {
         path: '/medias',
         route: media_route_1.mediaRouter,
+    },
+    {
+        path: '/categories',
+        route: category_route_1.categoryRouter,
+    },
+    {
+        path: '/brands',
+        route: brand_route_1.brandRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
