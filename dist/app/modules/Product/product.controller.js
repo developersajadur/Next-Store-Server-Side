@@ -32,6 +32,24 @@ const getAllProducts = (0, catchAsync_1.default)(async (req, res) => {
         data: products,
     });
 });
+const getAllProductsForProductCard = (0, catchAsync_1.default)(async (req, res) => {
+    const products = await product_service_1.ProductService.getAllProductsForProductCard(req.query);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Products Some Data retrieved successfully',
+        data: products,
+    });
+});
+const getHomeProducts = (0, catchAsync_1.default)(async (req, res) => {
+    const products = await product_service_1.ProductService.getHomeProducts();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Home Products retrieved successfully',
+        data: products,
+    });
+});
 const getSingleProductById = (0, catchAsync_1.default)(async (req, res) => {
     const product = await product_service_1.ProductService.getSingleProductById(req.params.id);
     (0, sendResponse_1.default)(res, {
@@ -80,4 +98,6 @@ exports.productController = {
     updateSingleProductById,
     deleteMultipleOrSingleMediaById,
     getSingleProductBySlug,
+    getAllProductsForProductCard,
+    getHomeProducts
 };

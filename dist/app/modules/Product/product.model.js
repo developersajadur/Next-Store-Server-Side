@@ -49,6 +49,18 @@ const ProductSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+// Pre-save hook to set default values
+ProductSchema.pre('save', function (next) {
+    if (this.isNew || this.isModified('price')) {
+        if (this.regular_price == null) {
+            this.regular_price = this.price;
+        }
+        if (this.sale_price == null) {
+            this.sale_price = this.price;
+        }
+    }
+    next();
+});
 // Middleware to exclude soft-deleted documents
 ProductSchema.pre(/^find/, function (next) {
     this.find({ isDeleted: false });

@@ -9,6 +9,8 @@ router.post('/create', auth(USER_ROLE.admin), categoryController.createCategoryI
 
 router.get('/get-all', categoryController.getAllCategories);
 
+router.get('/get-all-with-some-data', categoryController.getAllCategoryWithSomeData);
+
 router.get('/id/:id', categoryController.getCategoryById);
 
 router.get('/slug/:slug', categoryController.getCategoryBySlug);

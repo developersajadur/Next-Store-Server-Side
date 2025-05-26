@@ -11,6 +11,7 @@ const category_model_1 = require("./category.model");
 const generateUniqueSlug_1 = require("../../helpers/generateUniqueSlug");
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));
 const category_constant_1 = require("./category.constant");
+const product_constant_1 = require("../Product/product.constant");
 const createCategoryIntoDb = async (payload, userId) => {
     if (payload.image) {
         const isExistMedia = await media_model_1.MediaModel.findById(payload.image);
@@ -32,6 +33,17 @@ const getAllCategories = async (query) => {
     const result = await categoryQuery.modelQuery;
     const meta = await categoryQuery.countTotal();
     return { data: result, meta };
+};
+const getAllCategoryWithSomeData = async () => {
+    const categories = category_model_1.CategoryModel.find({ isDeleted: false })
+        .populate(product_constant_1.populateImage)
+        .select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        description: 1,
+    });
+    return categories;
 };
 const getCategoryById = async (id) => {
     const category = await category_model_1.CategoryModel.findById(id).lean();
@@ -84,4 +96,5 @@ exports.categoryService = {
     getCategoryBySlug,
     updateCategoryById,
     deleteSingleOrMultipleCategories,
+    getAllCategoryWithSomeData
 };

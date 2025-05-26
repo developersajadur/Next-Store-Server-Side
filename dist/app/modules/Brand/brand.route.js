@@ -12,6 +12,7 @@ const router = (0, express_1.Router)();
 router.post('/create', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), brand_controller_1.brandController.createBrand);
 router.patch('/update/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), brand_controller_1.brandController.updateBrand);
 router.get('/get-all', brand_controller_1.brandController.getAllBrands);
+router.get('/get-all-with-some-data', brand_controller_1.brandController.getAllBrandsWithSomeData);
 router.get('/id/:id', brand_controller_1.brandController.getSingleBrandById);
 router.get('/slug/:slug', brand_controller_1.brandController.getSingleBrandBySlug);
 router.delete('/delete', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), brand_controller_1.brandController.deleteBrand);

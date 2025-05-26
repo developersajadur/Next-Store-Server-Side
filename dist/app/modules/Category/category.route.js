@@ -11,6 +11,7 @@ const category_controller_1 = require("./category.controller");
 const router = (0, express_1.Router)();
 router.post('/create', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), category_controller_1.categoryController.createCategoryIntoDb);
 router.get('/get-all', category_controller_1.categoryController.getAllCategories);
+router.get('/get-all-with-some-data', category_controller_1.categoryController.getAllCategoryWithSomeData);
 router.get('/id/:id', category_controller_1.categoryController.getCategoryById);
 router.get('/slug/:slug', category_controller_1.categoryController.getCategoryBySlug);
 router.patch('/update/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), category_controller_1.categoryController.updateCategoryById);

@@ -13,6 +13,8 @@ const product_validation_1 = require("./product.validation");
 const router = express_1.default.Router();
 router.post('/create', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), (0, validateRequest_1.default)(product_validation_1.ProductValidationSchema.createProductValidation), product_controller_1.productController.createProduct);
 router.get('/get-all', product_controller_1.productController.getAllProducts);
+router.get('/get-all-for-product-card', product_controller_1.productController.getAllProductsForProductCard);
+router.get('/get-all-home-products', product_controller_1.productController.getHomeProducts);
 router.get('/get-by-id/:id', product_controller_1.productController.getSingleProductById);
 router.get('/get-by-slug/:slug', product_controller_1.productController.getSingleProductBySlug);
 router.patch('/update/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), product_controller_1.productController.updateSingleProductById);

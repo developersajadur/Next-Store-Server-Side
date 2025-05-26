@@ -6,6 +6,7 @@ import { TBrand } from './brand.interface';
 import { generateUniqueSlug } from '../../helpers/generateUniqueSlug';
 import QueryBuilder from '../../builders/QueryBuilder';
 import { brandSearchableFields } from './brand.constant';
+import { populateImage } from '../Product/product.constant';
 
 const createBrandIntoDb = async (payload: Partial<TBrand>, userId: string) => {
   // Check media existence
@@ -52,8 +53,14 @@ const updateBrandIntoDb = async (brandId: string, payload: Partial<TBrand>) => {
 };
 
 const getAllBrands = async (query: Record<string, unknown>) => {
-    const brandQuery = new QueryBuilder(
-    BrandModel.find({ isDeleted: false }),
+  const brandQuery = new QueryBuilder(
+    BrandModel.find({ isDeleted: false }).populate(populateImage).select({
+      title: 1,
+      slug: 1,
+      image: 1,
+      description: 1,
+      websiteUrl: 1,
+    }),
     query,
   )
     .search(brandSearchableFields)
@@ -67,8 +74,23 @@ const getAllBrands = async (query: Record<string, unknown>) => {
   return { data: result, meta };
 };
 
+const getAllBrandsWithSomeData = async () => {
+  const brands = BrandModel.find({ isDeleted: false })
+    .populate(populateImage)
+    .select({
+      title: 1,
+      slug: 1,
+      image: 1,
+      description: 1,
+      websiteUrl: 1,
+    });
+    return brands;
+};
+
 const getSingleBrandById = async (brandId: string): Promise<TBrand | null> => {
-  const brand = await BrandModel.findById(brandId).lean();
+  const brand = await BrandModel.findById(brandId)
+    .populate(populateImage)
+    .lean();
   if (!brand || brand.isDeleted) {
     throw new AppError(status.NOT_FOUND, 'Brand Not Found');
   }
@@ -79,7 +101,9 @@ const getSingleBrandBySlug = async (slug: string): Promise<TBrand | null> => {
   const brand = await BrandModel.findOne({
     slug,
     isDeleted: false,
-  }).lean();
+  })
+    .populate(populateImage)
+    .lean();
   if (!brand) {
     throw new AppError(status.NOT_FOUND, 'Brand Not Found');
   }
@@ -113,4 +137,5 @@ export const brandService = {
   getSingleBrandById,
   getSingleBrandBySlug,
   deleteSingleOrMultipleBrands,
+  getAllBrandsWithSomeData
 };

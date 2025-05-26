@@ -29,6 +29,16 @@ const getAllCategories = catchAsync(async (req, res) => {
   });
 });
 
+const getAllCategoryWithSomeData = catchAsync(async (req, res) => {
+  const result = await categoryService.getAllCategoryWithSomeData();
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Categories fetched successfully',
+    data: result,
+  });
+});
+
 const getCategoryById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await categoryService.getCategoryById(id);
@@ -82,4 +92,5 @@ export const categoryController = {
   getCategoryBySlug,
   updateCategoryById,
   deleteSingleOrMultipleCategories,
+  getAllCategoryWithSomeData
 };

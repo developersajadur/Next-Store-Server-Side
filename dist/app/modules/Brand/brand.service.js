@@ -11,6 +11,7 @@ const media_model_1 = require("../Media/media.model");
 const generateUniqueSlug_1 = require("../../helpers/generateUniqueSlug");
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));
 const brand_constant_1 = require("./brand.constant");
+const product_constant_1 = require("../Product/product.constant");
 const createBrandIntoDb = async (payload, userId) => {
     // Check media existence
     const isExistMedia = await media_model_1.MediaModel.findById(payload.image);
@@ -39,7 +40,13 @@ const updateBrandIntoDb = async (brandId, payload) => {
     return updated;
 };
 const getAllBrands = async (query) => {
-    const brandQuery = new QueryBuilder_1.default(brand_model_1.BrandModel.find({ isDeleted: false }), query)
+    const brandQuery = new QueryBuilder_1.default(brand_model_1.BrandModel.find({ isDeleted: false }).populate(product_constant_1.populateImage).select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        description: 1,
+        websiteUrl: 1,
+    }), query)
         .search(brand_constant_1.brandSearchableFields)
         .filter()
         .sort()
@@ -49,8 +56,22 @@ const getAllBrands = async (query) => {
     const meta = await brandQuery.countTotal();
     return { data: result, meta };
 };
+const getAllBrandsWithSomeData = async () => {
+    const brands = brand_model_1.BrandModel.find({ isDeleted: false })
+        .populate(product_constant_1.populateImage)
+        .select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        description: 1,
+        websiteUrl: 1,
+    });
+    return brands;
+};
 const getSingleBrandById = async (brandId) => {
-    const brand = await brand_model_1.BrandModel.findById(brandId).lean();
+    const brand = await brand_model_1.BrandModel.findById(brandId)
+        .populate(product_constant_1.populateImage)
+        .lean();
     if (!brand || brand.isDeleted) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Brand Not Found');
     }
@@ -60,7 +81,9 @@ const getSingleBrandBySlug = async (slug) => {
     const brand = await brand_model_1.BrandModel.findOne({
         slug,
         isDeleted: false,
-    }).lean();
+    })
+        .populate(product_constant_1.populateImage)
+        .lean();
     if (!brand) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Brand Not Found');
     }
@@ -83,4 +106,5 @@ exports.brandService = {
     getSingleBrandById,
     getSingleBrandBySlug,
     deleteSingleOrMultipleBrands,
+    getAllBrandsWithSomeData
 };

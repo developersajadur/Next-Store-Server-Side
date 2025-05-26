@@ -6,6 +6,7 @@ import { CategoryModel } from './category.model';
 import { generateUniqueSlug } from '../../helpers/generateUniqueSlug';
 import QueryBuilder from '../../builders/QueryBuilder';
 import { categorySearchableFields } from './category.constant';
+import { populateImage } from '../Product/product.constant';
 
 const createCategoryIntoDb = async (
   payload: Partial<TCategory>,
@@ -44,6 +45,19 @@ const getAllCategories = async (query: Record<string, unknown>) => {
   return { data: result, meta };
 };
 
+const getAllCategoryWithSomeData = async () => {
+  const categories = CategoryModel.find({ isDeleted: false })
+    .populate(populateImage)
+    .select({
+      title: 1,
+      slug: 1,
+      image: 1,
+      description: 1,
+    });
+    return categories;
+};
+
+
 const getCategoryById = async (id: string) => {
   const category = await CategoryModel.findById(id).lean();
   if (!category || category.isDeleted) {
@@ -63,10 +77,7 @@ const getCategoryBySlug = async (slug: string) => {
   return category;
 };
 
-const updateCategoryById = async (
-  id: string,
-  payload: Partial<TCategory>,
-) => {
+const updateCategoryById = async (id: string, payload: Partial<TCategory>) => {
   if (payload.image) {
     const isExistMedia = await MediaModel.findById(payload.image);
     if (!isExistMedia || isExistMedia.isDeleted) {
@@ -83,7 +94,7 @@ const updateCategoryById = async (
   }
   const updated = await CategoryModel.findOneAndUpdate(
     { _id: id, isDeleted: false },
-    { ...payload},
+    { ...payload },
     { new: true },
   );
 
@@ -105,7 +116,7 @@ const deleteSingleOrMultipleCategories = async (categoryIds: string[]) => {
   await CategoryModel.updateMany(
     { _id: { $in: categoryIds } },
     { $set: { isDeleted: true } },
-    {new: true}
+    { new: true },
   );
 };
 
@@ -116,4 +127,5 @@ export const categoryService = {
   getCategoryBySlug,
   updateCategoryById,
   deleteSingleOrMultipleCategories,
+  getAllCategoryWithSomeData
 };

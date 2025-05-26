@@ -8,6 +8,7 @@ const router = Router();
 router.post('/create', auth(USER_ROLE.admin), brandController.createBrand);
 router.patch('/update/:id', auth(USER_ROLE.admin), brandController.updateBrand);
 router.get('/get-all', brandController.getAllBrands);
+router.get('/get-all-with-some-data', brandController.getAllBrandsWithSomeData);
 router.get('/id/:id', brandController.getSingleBrandById);
 router.get('/slug/:slug', brandController.getSingleBrandBySlug);
 router.delete('/delete', auth(USER_ROLE.admin), brandController.deleteBrand);

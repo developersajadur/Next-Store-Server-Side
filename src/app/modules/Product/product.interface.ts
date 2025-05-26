@@ -34,8 +34,8 @@ export type TProduct = {
   description: string;
   short_description?: string;
   price: number;
-  regular_price?: number;
-  sale_price?: number;
+  regular_price: number;
+  sale_price: number;
   variants: TVariant[];
   stock_quantity: number;
   specifications: TSpecificationItem[];

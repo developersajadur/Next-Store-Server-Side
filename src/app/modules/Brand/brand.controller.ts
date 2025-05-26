@@ -44,6 +44,18 @@ const getAllBrands = catchAsync(async (req, res) => {
   });
 });
 
+
+const getAllBrandsWithSomeData = catchAsync(async (req, res) => {
+  const result = await brandService.getAllBrandsWithSomeData();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Brands fetched With some data successfully',
+    data: result,
+  });
+});
+
 const getSingleBrandById = catchAsync(async (req, res) => {
   const brandId = req.params.id;
   const result = await brandService.getSingleBrandById(brandId);
@@ -88,4 +100,5 @@ export const brandController = {
   getSingleBrandById,
   getSingleBrandBySlug,
   deleteBrand,
+  getAllBrandsWithSomeData
 };

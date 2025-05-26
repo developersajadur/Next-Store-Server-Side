@@ -14,6 +14,7 @@ const generateUniqueSlug_1 = require("../../helpers/generateUniqueSlug");
 const media_model_1 = require("../Media/media.model");
 const brand_model_1 = require("../Brand/brand.model");
 const category_model_1 = require("../Category/category.model");
+const product_utils_1 = require("./product.utils");
 const createProductIntoDb = async (product) => {
     // Validate Brand
     const brand = await brand_model_1.BrandModel.findOne({
@@ -77,6 +78,19 @@ const getAllProducts = async (query) => {
     const meta = await productQuery.countTotal();
     return { data: result, meta };
 };
+const getAllProductsForProductCard = async (query) => {
+    const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({ isDeleted: false })
+        .select(product_constant_1.baseSelectFields)
+        .populate(product_constant_1.populateImage), query)
+        .search(product_constant_1.productSearchableFields)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+    const result = await productQuery.modelQuery;
+    const meta = await productQuery.countTotal();
+    return { data: result, meta };
+};
 const getSingleProductById = async (_id) => {
     const product = await product_model_1.ProductModel.findById({
         _id,
@@ -123,6 +137,10 @@ const deleteMultipleOrSingleMediaById = async (productsId) => {
     }
     await product_model_1.ProductModel.updateMany({ _id: { $in: productsId } }, { $set: { isDeleted: true } });
 };
+const getHomeProducts = async () => {
+    const result = await (0, product_utils_1.getHomeProductsUtils)();
+    return result;
+};
 exports.ProductService = {
     createProductIntoDb,
     getAllProducts,
@@ -130,4 +148,6 @@ exports.ProductService = {
     getSingleProductBySlug,
     updateSingleProductById,
     deleteMultipleOrSingleMediaById,
+    getAllProductsForProductCard,
+    getHomeProducts
 };

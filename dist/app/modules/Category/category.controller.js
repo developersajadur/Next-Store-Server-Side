@@ -27,6 +27,15 @@ const getAllCategories = (0, catchAsync_1.default)(async (req, res) => {
         data: result,
     });
 });
+const getAllCategoryWithSomeData = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await category_service_1.categoryService.getAllCategoryWithSomeData();
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: 'Categories fetched successfully',
+        data: result,
+    });
+});
 const getCategoryById = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
     const result = await category_service_1.categoryService.getCategoryById(id);
@@ -74,4 +83,5 @@ exports.categoryController = {
     getCategoryBySlug,
     updateCategoryById,
     deleteSingleOrMultipleCategories,
+    getAllCategoryWithSomeData
 };

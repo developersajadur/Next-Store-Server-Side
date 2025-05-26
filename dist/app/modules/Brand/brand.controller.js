@@ -37,6 +37,15 @@ const getAllBrands = (0, catchAsync_1.default)(async (req, res) => {
         data: result,
     });
 });
+const getAllBrandsWithSomeData = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await brand_service_1.brandService.getAllBrandsWithSomeData();
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: 'Brands fetched With some data successfully',
+        data: result,
+    });
+});
 const getSingleBrandById = (0, catchAsync_1.default)(async (req, res) => {
     const brandId = req.params.id;
     const result = await brand_service_1.brandService.getSingleBrandById(brandId);
@@ -74,4 +83,5 @@ exports.brandController = {
     getSingleBrandById,
     getSingleBrandBySlug,
     deleteBrand,
+    getAllBrandsWithSomeData
 };

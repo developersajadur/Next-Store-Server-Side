@@ -2,13 +2,15 @@
 import QueryBuilder from '../../builders/QueryBuilder';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
-import { productSearchableFields } from './product.constant';
+import { baseSelectFields, populateImage, productSearchableFields } from './product.constant';
 import { TProduct } from './product.interface';
 import { ProductModel } from './product.model';
 import { generateUniqueSlug } from '../../helpers/generateUniqueSlug';
 import { MediaModel } from '../Media/media.model';
 import { BrandModel } from '../Brand/brand.model';
 import { CategoryModel } from '../Category/category.model';
+import { Review } from '../Review/review.model';
+import { getHomeProductsUtils } from './product.utils';
 
 const createProductIntoDb = async (product: Partial<TProduct>) => {
   // Validate Brand
@@ -101,11 +103,30 @@ const getAllProducts = async (query: Record<string, unknown>) => {
   return { data: result, meta };
 };
 
+const getAllProductsForProductCard = async (query: Record<string, unknown>) => {
+  const productQuery = new QueryBuilder(
+    ProductModel.find({ isDeleted: false })
+      .select(baseSelectFields)
+      .populate(populateImage),
+    query,
+  )
+    .search(productSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await productQuery.modelQuery;
+  const meta = await productQuery.countTotal();
+
+  return { data: result, meta };
+};
+
 const getSingleProductById = async (_id: string) => {
   const product = await ProductModel.findById({
     _id,
     isDeleted: false,
-  })
+  });
   if (!product || product.isDeleted) {
     throw new AppError(status.NOT_FOUND, 'Product Not Found');
   }
@@ -116,7 +137,7 @@ const getSingleProductBySlug = async (slug: string) => {
   const product = await ProductModel.findOne({
     slug,
     isDeleted: false,
-  })
+  });
   if (!product) {
     throw new AppError(status.NOT_FOUND, 'Product Not Found');
   }
@@ -171,6 +192,14 @@ const deleteMultipleOrSingleMediaById = async (
     { $set: { isDeleted: true } },
   );
 };
+
+
+
+const getHomeProducts = async () => {
+ const result = await getHomeProductsUtils()
+ return result
+};
+
 export const ProductService = {
   createProductIntoDb,
   getAllProducts,
@@ -178,4 +207,6 @@ export const ProductService = {
   getSingleProductBySlug,
   updateSingleProductById,
   deleteMultipleOrSingleMediaById,
+  getAllProductsForProductCard,
+  getHomeProducts
 };
