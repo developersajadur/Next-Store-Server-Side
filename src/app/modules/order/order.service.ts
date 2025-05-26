@@ -6,7 +6,7 @@ import { TUser, TUserRole } from '../User/user.interface';
 import QueryBuilder from '../../builders/QueryBuilder';
 import { ProductModel } from '../Product/product.model';
 import { PaymentModel } from '../Payment/payment.model';
-import { IOrderStatus } from './order.interface';
+import { IOrder, IOrderStatus } from './order.interface';
 import { generateTransactionId } from '../../helpers/transactionIdGenerator';
 import { paymentUtils } from '../Payment/payment.utils';
 import { orderSearchableFields } from './order.constant';
@@ -15,23 +15,20 @@ import { UserModel } from '../User/user.model';
 
 const createOrder = async (
   userId: string,
-  payload: {
-    products: { product: string; quantity: number }[];
-    method: 'online' | 'cash';
-  },
+  payload: Partial<IOrder> & { method: 'cash' | 'online' },
   client_ip: string,
 ) => {
-    const user = await UserModel.findById(userId) as TUser;
-    if(!user || user.isBlocked)
-  if (!payload?.products?.length) {
-    throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Order is not specified');
-  }
+  const user = (await UserModel.findById(userId)) as TUser;
+  if (!user || user.isBlocked)
+    if (!payload?.products?.length) {
+      throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Order is not specified');
+    }
 
   const products = payload.products;
   let totalPrice = 0;
 
   const productDetails = await Promise.all(
-    products.map(async (item) => {
+    products!.map(async (item) => {
       const product = await ProductModel.findById(item.product);
       if (!product || product.isDeleted) {
         throw new AppError(httpStatus.NOT_FOUND, `Product not found`);
@@ -52,7 +49,9 @@ const createOrder = async (
     }),
   );
 
+  // create order
   const order = await Order.create({
+    ...payload,
     userId: user._id,
     products: productDetails,
     totalPrice,
@@ -72,6 +71,7 @@ const createOrder = async (
     };
 
     const payment = await paymentUtils.makePaymentAsync(shurjopayPayload);
+    // console.log(payment, "payment");
 
     if (payment?.transactionStatus && payment.checkout_url) {
       await PaymentModel.create({
@@ -79,7 +79,7 @@ const createOrder = async (
         orderId: order._id,
         amount: totalPrice,
         transactionId: generateTransactionId(),
-        gatewayResponse: payment.transactionStatus,
+        sp_order_id: payment.sp_order_id,
         method: payload.method,
       });
     }
@@ -143,8 +143,7 @@ const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
     }
 
     const payment = await PaymentModel.findOne({
-      orderId: orderId,
-      userId: order.userId,
+      orderId: orderId
     }).session(session);
 
     if (

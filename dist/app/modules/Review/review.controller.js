@@ -76,10 +76,8 @@ const deleteReviewFromDb = (0, catchAsync_1.default)((req, res) => __awaiter(voi
     });
 }));
 const getSingleReviewById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
-    const { role, userId } = decoded;
     const { reviewId } = req.params;
-    const review = yield review_service_1.ReviewService.getSingleReviewById(reviewId, role, userId);
+    const review = yield review_service_1.ReviewService.getSingleReviewById(reviewId);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
@@ -93,5 +91,5 @@ exports.reviewController = {
     updateReviewIntoDb,
     getReviewBySlugForEachProduct,
     deleteReviewFromDb,
-    getSingleReviewById
+    getSingleReviewById,
 };

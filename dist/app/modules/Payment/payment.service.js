@@ -22,6 +22,7 @@ const payment_utils_1 = require("./payment.utils");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const verifyPayment = (order_id) => __awaiter(void 0, void 0, void 0, function* () {
     const verifiedPayment = yield payment_utils_1.paymentUtils.verifyPaymentAsync(order_id);
+    // console.log(verifiedPayment);
     if (verifiedPayment.length) {
         const paymentStatus = verifiedPayment[0].bank_status === 'Success'
             ? 'paid'
@@ -30,27 +31,25 @@ const verifyPayment = (order_id) => __awaiter(void 0, void 0, void 0, function* 
                 : verifiedPayment[0].bank_status === 'Cancel'
                     ? 'failed'
                     : 'failed';
-        yield payment_model_1.PaymentModel.findOneAndUpdate({ 'gatewayResponse.id': order_id }, {
-            'gatewayResponse.bank_status': verifiedPayment[0].bank_status,
-            'gatewayResponse.sp_code': verifiedPayment[0].sp_code,
-            'gatewayResponse.sp_message': verifiedPayment[0].sp_message,
-            'gatewayResponse.transactionStatus': verifiedPayment[0].transaction_status,
-            'gatewayResponse.method': verifiedPayment[0].method,
-            'gatewayResponse.date_time': verifiedPayment[0].date_time,
+        const updatedPayment = yield payment_model_1.PaymentModel.findOneAndUpdate({ sp_order_id: order_id }, {
+            gatewayResponse: verifiedPayment[0],
             status: paymentStatus,
         }, { new: true });
+        return updatedPayment;
     }
-    return verifiedPayment;
 });
 const getAllPayment = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const productQuery = new QueryBuilder_1.default(payment_model_1.PaymentModel.find().populate('userId'), query)
+    const paymentQuery = new QueryBuilder_1.default(payment_model_1.PaymentModel.find().populate({
+        path: 'userId',
+        select: 'name email profileImage',
+    }), query)
         .search(payment_constant_1.paymentSearchableFields)
         .filter()
         .sort()
         .paginate()
         .fields();
-    const result = yield productQuery.modelQuery;
-    const meta = yield productQuery.countTotal();
+    const result = yield paymentQuery.modelQuery;
+    const meta = yield paymentQuery.countTotal();
     return { data: result, meta };
 });
 const getSinglePaymentById = (paymentId, role, userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -60,13 +59,17 @@ const getSinglePaymentById = (paymentId, role, userId) => __awaiter(void 0, void
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Payment Not Found');
         }
         const paymentUserId = payment.userId.toString();
-        if (paymentUserId !== userId) {
+        const stringUserId = userId.toString();
+        if (paymentUserId !== stringUserId) {
             throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "You Cat't Access Others Payment");
         }
         return payment;
     }
     if (role === user_constant_1.USER_ROLE.admin) {
-        const payment = yield payment_model_1.PaymentModel.findById(paymentId);
+        const payment = yield payment_model_1.PaymentModel.findById(paymentId).populate({
+            path: 'userId',
+            select: 'name email profileImage',
+        });
         if (!payment) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Payment Not Found');
         }
@@ -74,8 +77,20 @@ const getSinglePaymentById = (paymentId, role, userId) => __awaiter(void 0, void
     }
     return null;
 });
+const getMyPayment = (query, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const paymentQuery = new QueryBuilder_1.default(payment_model_1.PaymentModel.find({ userId }), query)
+        .search(payment_constant_1.paymentSearchableFields)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+    const result = yield paymentQuery.modelQuery;
+    const meta = yield paymentQuery.countTotal();
+    return { data: result, meta };
+});
 exports.paymentService = {
     verifyPayment,
     getAllPayment,
-    getSinglePaymentById
+    getSinglePaymentById,
+    getMyPayment,
 };

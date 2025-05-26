@@ -17,14 +17,14 @@ export type TVariant = {
   sale_price?: number;
   stock_quantity: number;
   additional?: string;
-  image?: Types.ObjectId;
+  image: Types.ObjectId;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
 
 // Product Type
 export type TProduct = {
-  author: Types.ObjectId;
+  addedBy: Types.ObjectId;
   title: string;
   slug: string;
   image: Types.ObjectId;
@@ -39,7 +39,7 @@ export type TProduct = {
   variants: TVariant[];
   stock_quantity: number;
   specifications: TSpecificationItem[];
-  warranty: string;
+  warranty?: string;
   weight?: number;
   size?: string;
   seoTitle?: string;

@@ -24,7 +24,6 @@ const variantSchema = z.object({
 
 const createProductValidation = z.object({
   body: z.object({
-    author: z.string({ message: 'Author is required' }),
     title: z.string().min(1, { message: 'Title is required' }),
     image: z.string().min(1, { message: 'Image is required' }),
     gallery_images: z.array(z.string()).optional(),
@@ -51,7 +50,6 @@ const createProductValidation = z.object({
 
 const updateProductValidation = z.object({
   body: z.object({
-    author: z.string().optional(),
     title: z.string().min(1).optional(),
     image: z.string().optional(),
     gallery_images: z.array(z.string()).optional(),

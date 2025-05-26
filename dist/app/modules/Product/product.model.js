@@ -10,7 +10,7 @@ const SpecificationItemSchema = new mongoose_1.Schema({
 }, { _id: false });
 // Variant Schema
 const VariantSchema = new mongoose_1.Schema({
-    color: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Media' },
+    color: { type: String },
     size: { type: String },
     weight: { type: Number },
     price: { type: Number, required: true },
@@ -24,7 +24,7 @@ const VariantSchema = new mongoose_1.Schema({
 }, { _id: true });
 // Product Schema
 const ProductSchema = new mongoose_1.Schema({
-    author: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+    addedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true, trim: true },
     slug: { type: String, trim: true, unique: true, sparse: true },
     image: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Media', required: true },

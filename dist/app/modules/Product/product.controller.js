@@ -23,7 +23,7 @@ const createProduct = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     const product = req.body;
-    const dataToStore = Object.assign(Object.assign({}, product), { author: userId });
+    const dataToStore = Object.assign(Object.assign({}, product), { addedBy: userId });
     const result = yield product_service_1.ProductService.createProductIntoDb(dataToStore);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,

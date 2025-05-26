@@ -37,7 +37,10 @@ const createReviewIntoDb = (payload) => __awaiter(void 0, void 0, void 0, functi
     return result;
 });
 const getAllReviewsFromDb = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const reviewQuery = new QueryBuilder_1.default(review_model_1.Review.find({ isDeleted: false }).lean(), query)
+    const reviewQuery = new QueryBuilder_1.default(review_model_1.Review.find({ isDeleted: false }).populate({
+        path: 'userId',
+        select: 'name email profileImage',
+    }), query)
         .search(review_constant_1.reviewSearchableFields)
         .filter()
         .sort()
@@ -67,7 +70,12 @@ const getReviewBySlugForEachProduct = (slug, query) => __awaiter(void 0, void 0,
     if (!product) {
         throw new Error(`Product with slug "${slug}" not found.`);
     }
-    const reviewQuery = new QueryBuilder_1.default(review_model_1.Review.find({ isDeleted: false, productId: product._id }).lean(), query)
+    const reviewQuery = new QueryBuilder_1.default(review_model_1.Review.find({ isDeleted: false, productId: product._id })
+        .populate({
+        path: 'userId',
+        select: 'name email profileImage',
+    })
+        .lean(), query)
         .filter()
         .sort()
         .paginate()
@@ -86,33 +94,22 @@ const deleteReviewFromDb = (reviewId, userId) => __awaiter(void 0, void 0, void 
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
     }
     if (user.role === user_constant_1.USER_ROLE.customer) {
-        if (isExistReview.userId.toString() !== userId) {
+        if (isExistReview.userId.toString() !== userId.toString()) {
             throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'You are not authorized to delete this review');
         }
     }
     const result = yield review_model_1.Review.findByIdAndUpdate(reviewId, { $set: { isDeleted: true } }, { new: true }).lean();
     return result;
 });
-const getSingleReviewById = (reviewId, role, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    if (role === user_constant_1.USER_ROLE.customer) {
-        const review = yield review_model_1.Review.findById(reviewId);
-        if (!review || (review === null || review === void 0 ? void 0 : review.isDeleted)) {
-            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Review Not Found');
-        }
-        const reviewUserId = review.userId.toString();
-        if (reviewUserId !== userId) {
-            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "You Cat't Access Others Review");
-        }
-        return review;
+const getSingleReviewById = (reviewId) => __awaiter(void 0, void 0, void 0, function* () {
+    const review = yield review_model_1.Review.findById(reviewId).populate({
+        path: 'userId',
+        select: 'name email profileImage',
+    });
+    if (!review || (review === null || review === void 0 ? void 0 : review.isDeleted)) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Review Not Found');
     }
-    if (role === user_constant_1.USER_ROLE.admin) {
-        const review = yield review_model_1.Review.findById(reviewId);
-        if (!review || review.isDeleted) {
-            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Review Not Found');
-        }
-        return review;
-    }
-    return null;
+    return review;
 });
 exports.ReviewService = {
     createReviewIntoDb,
@@ -120,5 +117,5 @@ exports.ReviewService = {
     updateReviewIntoDb,
     getReviewBySlugForEachProduct,
     deleteReviewFromDb,
-    getSingleReviewById
+    getSingleReviewById,
 };

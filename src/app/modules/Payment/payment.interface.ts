@@ -18,7 +18,8 @@ export type TPayment = {
   status: 'pending' | 'paid' | 'failed' | 'refunded';
   transactionId?: string;
   amount: number;
-  gatewayResponse: IGatewayResponse;
+  sp_order_id?: string;
+  gatewayResponse?: IGatewayResponse;
   createdAt?: Date;
   updatedAt?: Date;
 }

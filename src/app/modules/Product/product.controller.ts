@@ -9,7 +9,7 @@ const createProduct = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
   const { userId } = decoded;
   const product = req.body;
-  const dataToStore = { ...product, author: userId };
+  const dataToStore = { ...product, addedBy: userId };
   const result = await ProductService.createProductIntoDb(dataToStore);
   sendResponse(res, {
     statusCode: status.OK,

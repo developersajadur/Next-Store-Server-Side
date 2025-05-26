@@ -11,9 +11,9 @@ const router = Router();
 
 router.post('/create-review', validateRequest(ReviewValidationSchema.createReviewValidation) ,auth(USER_ROLE.customer), reviewController.createReviewIntoDb)
 
-router.get('/', auth(USER_ROLE.admin), reviewController.getAllReviewsFromDb)
+router.get('/get-all', auth(USER_ROLE.admin), reviewController.getAllReviewsFromDb)
 
-router.put('/update-review/:reviewId/product/:productId', validateRequest(ReviewValidationSchema.updateReviewValidation), auth(USER_ROLE.customer), reviewController.updateReviewIntoDb)
+router.patch('/update-review/:reviewId/product/:productId', validateRequest(ReviewValidationSchema.updateReviewValidation), auth(USER_ROLE.customer), reviewController.updateReviewIntoDb)
 
 router.get('/product-reviews/:slug', reviewController.getReviewBySlugForEachProduct)
 
@@ -21,7 +21,6 @@ router.delete('/delete-review/:reviewId', auth(USER_ROLE.customer, USER_ROLE.adm
 
 router.get(
   '/get-review-by-id/:reviewId',
-  auth(USER_ROLE.admin, USER_ROLE.customer),
   reviewController.getSingleReviewById,
 );
 

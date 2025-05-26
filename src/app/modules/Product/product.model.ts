@@ -14,7 +14,7 @@ const SpecificationItemSchema = new Schema(
 // Variant Schema
 const VariantSchema = new Schema(
   {
-    color: { type: Schema.Types.ObjectId, ref: 'Media' },
+    color: { type: String },
     size: { type: String },
     weight: { type: Number },
     price: { type: Number, required: true },
@@ -32,7 +32,7 @@ const VariantSchema = new Schema(
 // Product Schema
 const ProductSchema = new Schema<TProduct>(
   {
-    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    addedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true, trim: true },
     slug: { type: String, trim: true, unique: true, sparse: true },
     image: { type: Schema.Types.ObjectId, ref: 'Media', required: true },

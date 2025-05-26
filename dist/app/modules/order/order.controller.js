@@ -22,6 +22,7 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
     // console.log(userId);
+    // console.log(req.body);
     const order = yield order_service_1.orderService.createOrder(userId, req.body, req.ip);
     const orderResponse = JSON.parse(JSON.stringify(order));
     (0, sendResponse_1.default)(res, {

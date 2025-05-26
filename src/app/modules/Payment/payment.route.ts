@@ -15,7 +15,12 @@ router.get(
 router.get('/all-payments', auth(USER_ROLE.admin), paymentController.getAllPayment)
 
 router.get(
-  '/get-payment-by-id/paymentId',
+  '/get-my-payments',
+  auth(USER_ROLE.admin, USER_ROLE.customer),
+  paymentController.getMyPayment,
+);
+router.get(
+  '/get-payment-by-id/:paymentId',
   auth(USER_ROLE.admin, USER_ROLE.customer),
   paymentController.getSinglePaymentById,
 );

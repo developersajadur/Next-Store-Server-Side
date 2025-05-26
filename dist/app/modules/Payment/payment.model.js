@@ -26,8 +26,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const PaymentSchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: [true, 'User is required'] },
-    orderId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Order', required: [true, 'Order is required'] },
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'User is required'],
+    },
+    orderId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: [true, 'Order is required'],
+    },
     method: {
         type: String,
         enum: ['cash', 'card', 'online', 'shurjo-pay'],
@@ -39,7 +47,16 @@ const PaymentSchema = new mongoose_1.Schema({
         required: [true, 'Payment status is required'],
         default: 'pending',
     },
-    transactionId: { type: String, unique: [true, 'This transactionId already exist'] },
+    transactionId: {
+        type: String,
+        unique: [true, 'This transactionId already exist'],
+        required: [true, 'Payment status is required'],
+    },
+    sp_order_id: {
+        type: String,
+        unique: [true, 'This transactionId already exist'],
+        required: [true, 'Payment status is required'],
+    },
     amount: { type: Number, required: [true, 'Amount is required'] },
     gatewayResponse: { type: mongoose_1.Schema.Types.Mixed },
 }, { timestamps: true });

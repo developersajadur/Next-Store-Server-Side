@@ -30,6 +30,7 @@ const OrderSchema = new mongoose_1.Schema({
         type: Number,
         required: true,
         min: [0, 'Shipping cost must be a non-negative number'],
+        default: 0
     },
     couponCode: {
         type: Number,

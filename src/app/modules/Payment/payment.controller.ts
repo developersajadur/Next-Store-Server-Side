@@ -2,7 +2,8 @@ import  httpStatus from 'http-status';
 import catchAsync from "../../helpers/catchAsync";
 import sendResponse from "../../helpers/sendResponse";
 import { paymentService } from "./payment.service";
-import { tokenDecoder } from '../../helpers/jwtHelper';
+import { Request } from 'express';
+import { TTokenUser } from '../Auth/auth.interface';
 
 
 const verifyPayment = catchAsync(async (req, res) => {
@@ -30,9 +31,9 @@ const getAllPayment = catchAsync(async (req, res) => {
 });
 
 
-const getSinglePaymentById = catchAsync(async (req, res) => {
-   const decoded = tokenDecoder(req);
-  const { role, userId } = decoded;
+const getSinglePaymentById = catchAsync(async (req:Request &{user?: TTokenUser}, res) => {
+    const userId = req.user!.userId;
+    const role = req.user!.role;
   const {paymentId} = req.params;
   const payment = await paymentService.getSinglePaymentById(paymentId, role, userId);
   sendResponse(res, {
@@ -44,9 +45,22 @@ const getSinglePaymentById = catchAsync(async (req, res) => {
 });
 
 
+const getMyPayment = catchAsync(async (req:Request &{user?: TTokenUser}, res) => {
+  const userId = req.user!.userId;
+  const payments = await paymentService.getMyPayment(req.query,userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'My Payments retrieved successfully',
+    data: payments,
+  });
+})
+
+
 
 export const paymentController = {
     verifyPayment,
     getAllPayment,
-    getSinglePaymentById
+    getSinglePaymentById,
+    getMyPayment
 }

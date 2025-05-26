@@ -23,7 +23,6 @@ const variantSchema = zod_1.z.object({
 });
 const createProductValidation = zod_1.z.object({
     body: zod_1.z.object({
-        author: zod_1.z.string({ message: 'Author is required' }),
         title: zod_1.z.string().min(1, { message: 'Title is required' }),
         image: zod_1.z.string().min(1, { message: 'Image is required' }),
         gallery_images: zod_1.z.array(zod_1.z.string()).optional(),
@@ -49,7 +48,6 @@ const createProductValidation = zod_1.z.object({
 });
 const updateProductValidation = zod_1.z.object({
     body: zod_1.z.object({
-        author: zod_1.z.string().optional(),
         title: zod_1.z.string().min(1).optional(),
         image: zod_1.z.string().optional(),
         gallery_images: zod_1.z.array(zod_1.z.string()).optional(),

@@ -8,6 +8,7 @@ const createOrder = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
   const { userId } = decoded;
   // console.log(userId);
+  // console.log(req.body);
   const order = await orderService.createOrder(userId, req.body, req.ip!);
 
   const orderResponse = JSON.parse(JSON.stringify(order));

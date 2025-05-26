@@ -7,7 +7,6 @@ import QueryBuilder from '../../builders/QueryBuilder';
 import { reviewSearchableFields } from './review.constant';
 import { UserModel } from '../User/user.model';
 import { USER_ROLE } from '../User/user.constant';
-import { TUserRole } from '../User/user.interface';
 
 const createReviewIntoDb = async (payload: TReview) => {
   const isExistProduct = await ProductModel.findById(payload.productId).lean();
@@ -32,7 +31,10 @@ const createReviewIntoDb = async (payload: TReview) => {
 
 const getAllReviewsFromDb = async (query: Record<string, unknown>) => {
   const reviewQuery = new QueryBuilder(
-    Review.find({ isDeleted: false }).lean(),
+    Review.find({ isDeleted: false }).populate({
+      path: 'userId',
+      select: 'name email profileImage',
+    }),
     query,
   )
     .search(reviewSearchableFields)
@@ -50,17 +52,19 @@ const updateReviewIntoDb = async (
   payload: Partial<TReview>,
   reviewId: string,
   userId: string,
-  productId: string
+  productId: string,
 ) => {
   const isExistReview = await Review.findById(reviewId).lean();
   if (!isExistReview || isExistReview.isDeleted) {
     throw new AppError(status.NOT_FOUND, 'Review not found');
   }
 
-
-    if (isExistReview.userId.toString() !== userId) {
-        throw new AppError(status.FORBIDDEN, 'You are not authorized to update this review');
-    }
+  if (isExistReview.userId.toString() !== userId) {
+    throw new AppError(
+      status.FORBIDDEN,
+      'You are not authorized to update this review',
+    );
+  }
 
   const isExistProduct = await ProductModel.findById(productId).lean();
   if (!isExistProduct || isExistProduct.isDeleted) {
@@ -74,80 +78,71 @@ const updateReviewIntoDb = async (
   return result;
 };
 
-const getReviewBySlugForEachProduct = async (slug: string, query: Record<string, unknown>) => {
+const getReviewBySlugForEachProduct = async (
+  slug: string,
+  query: Record<string, unknown>,
+) => {
+  const product = await ProductModel.findOne({ slug, isDeleted: false }).lean();
 
-    const product = await ProductModel.findOne({ slug, isDeleted: false }).lean();
+  if (!product) {
+    throw new Error(`Product with slug "${slug}" not found.`);
+  }
 
-    if (!product) {
-        throw new Error(`Product with slug "${slug}" not found.`);
-    }
+  const reviewQuery = new QueryBuilder(
+    Review.find({ isDeleted: false, productId: product._id })
+      .populate({
+        path: 'userId',
+        select: 'name email profileImage',
+      })
+      .lean(),
+    query,
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-    const reviewQuery = new QueryBuilder(
-        Review.find({ isDeleted: false, productId: product._id }).lean(),
-        query
-    )
-        .filter()
-        .sort()
-        .paginate()
-        .fields();
+  const reviews = await reviewQuery.modelQuery;
+  const meta = await reviewQuery.countTotal();
 
-    const reviews = await reviewQuery.modelQuery;
-    const meta = await reviewQuery.countTotal();
-
-    return { reviews, meta };
+  return { reviews, meta };
 };
 
 const deleteReviewFromDb = async (reviewId: string, userId: string) => {
-    const isExistReview = await Review.findById(reviewId).lean();
-    if (!isExistReview || isExistReview.isDeleted) {
-        throw new AppError(status.NOT_FOUND, 'Review not found');
-    }
-    const user = await UserModel.findById(userId).lean();
-    if (!user || user.isBlocked) {
-        throw new AppError(status.NOT_FOUND, 'User not found');
-    }
-    if(user.role === USER_ROLE.customer){
-        if(isExistReview.userId.toString() !== userId) {
-            throw new AppError(status.FORBIDDEN, 'You are not authorized to delete this review');
-        }
-    }
-    const result = await Review.findByIdAndUpdate(
-        reviewId,
-        { $set: { isDeleted: true } },
-        { new: true }
-    ).lean();
-    return result;
-}
-
-
-const getSingleReviewById = async (
-  reviewId: string,
-  role: TUserRole,
-  userId: string,
-) => {
-  if (role === USER_ROLE.customer) {
-    const review = await Review.findById(reviewId);
-    if (!review || review?.isDeleted) {
-      throw new AppError(status.NOT_FOUND, 'Review Not Found');
-    }
-    const reviewUserId = review.userId.toString();
-    if (reviewUserId !== userId) {
+  const isExistReview = await Review.findById(reviewId).lean();
+  if (!isExistReview || isExistReview.isDeleted) {
+    throw new AppError(status.NOT_FOUND, 'Review not found');
+  }
+  const user = await UserModel.findById(userId).lean();
+  if (!user || user.isBlocked) {
+    throw new AppError(status.NOT_FOUND, 'User not found');
+  }
+  if (user.role === USER_ROLE.customer) {
+    if (isExistReview.userId.toString() !== userId.toString()) {
       throw new AppError(
-        status.BAD_REQUEST,
-        "You Cat't Access Others Review",
+        status.FORBIDDEN,
+        'You are not authorized to delete this review',
       );
     }
-    return review;
+  }
+  const result = await Review.findByIdAndUpdate(
+    reviewId,
+    { $set: { isDeleted: true } },
+    { new: true },
+  ).lean();
+  return result;
+};
+
+const getSingleReviewById = async (reviewId: string) => {
+  const review = await Review.findById(reviewId).populate({
+    path: 'userId',
+    select: 'name email profileImage',
+  });
+  if (!review || review?.isDeleted) {
+    throw new AppError(status.NOT_FOUND, 'Review Not Found');
   }
 
-  if (role === USER_ROLE.admin) {
-    const review = await Review.findById(reviewId);
-    if (!review || review.isDeleted) {
-      throw new AppError(status.NOT_FOUND, 'Review Not Found');
-    }
-    return review;
-  }
-  return null;
+  return review;
 };
 
 export const ReviewService = {
@@ -156,5 +151,5 @@ export const ReviewService = {
   updateReviewIntoDb,
   getReviewBySlugForEachProduct,
   deleteReviewFromDb,
-  getSingleReviewById
+  getSingleReviewById,
 };

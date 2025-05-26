@@ -27,7 +27,7 @@ const user_constant_1 = require("../User/user.constant");
 const user_model_1 = require("../User/user.model");
 const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const user = yield user_model_1.UserModel.findById(userId);
+    const user = (yield user_model_1.UserModel.findById(userId));
     if (!user || user.isBlocked)
         if (!((_a = payload === null || payload === void 0 ? void 0 : payload.products) === null || _a === void 0 ? void 0 : _a.length)) {
             throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, 'Order is not specified');
@@ -48,11 +48,8 @@ const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, vo
         totalPrice += subtotal;
         return { product: product._id, quantity: item.quantity };
     })));
-    const order = yield order_model_1.default.create({
-        userId: user._id,
-        products: productDetails,
-        totalPrice,
-    });
+    // create order
+    const order = yield order_model_1.default.create(Object.assign(Object.assign({}, payload), { userId: user._id, products: productDetails, totalPrice }));
     if (payload.method === 'online') {
         const shurjopayPayload = {
             amount: totalPrice,
@@ -66,13 +63,14 @@ const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, vo
             client_ip,
         };
         const payment = yield payment_utils_1.paymentUtils.makePaymentAsync(shurjopayPayload);
+        // console.log(payment, "payment");
         if ((payment === null || payment === void 0 ? void 0 : payment.transactionStatus) && payment.checkout_url) {
             yield payment_model_1.PaymentModel.create({
                 userId: user._id,
                 orderId: order._id,
                 amount: totalPrice,
                 transactionId: (0, transactionIdGenerator_1.generateTransactionId)(),
-                gatewayResponse: payment.transactionStatus,
+                sp_order_id: payment.sp_order_id,
                 method: payload.method,
             });
         }
@@ -121,8 +119,7 @@ const updateOrderStatus = (orderId, status) => __awaiter(void 0, void 0, void 0,
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order not found');
         }
         const payment = yield payment_model_1.PaymentModel.findOne({
-            orderId: orderId,
-            userId: order.userId,
+            orderId: orderId
         }).session(session);
         if (!payment ||
             payment.status === 'failed' ||
