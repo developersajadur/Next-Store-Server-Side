@@ -22,15 +22,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -41,55 +32,55 @@ const http_status_1 = __importStar(require("http-status"));
 const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
 const media_service_1 = require("./media.service");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
-const uploadSingleMediaIntoDB = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield media_service_1.mediaService.uploadSingleMediaIntoDB(req);
+const uploadSingleMediaIntoDB = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await media_service_1.mediaService.uploadSingleMediaIntoDB(req);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
         message: 'Media uploaded successfully',
         data: result,
     });
-}));
-const uploadMultipleMediaIntoDB = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield media_service_1.mediaService.uploadMultipleMediaIntoDB(req);
+});
+const uploadMultipleMediaIntoDB = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await media_service_1.mediaService.uploadMultipleMediaIntoDB(req);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
         message: 'Multiple media uploaded successfully',
         data: result,
     });
-}));
-const getAllMedia = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield media_service_1.mediaService.getAllMedia(req.query);
+});
+const getAllMedia = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await media_service_1.mediaService.getAllMedia(req.query);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
         message: 'Medias retrieved successfully',
         data: result,
     });
-}));
-const getSingleMediaById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield media_service_1.mediaService.getSingleMediaById(req.params.mediaId);
+});
+const getSingleMediaById = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await media_service_1.mediaService.getSingleMediaById(req.params.mediaId);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
         message: 'Media retrieved successfully',
         data: result,
     });
-}));
-const deleteMultipleOrSingleMediaById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+const deleteMultipleOrSingleMediaById = (0, catchAsync_1.default)(async (req, res) => {
     const { mediasId } = req.body;
     if (!Array.isArray(mediasId) || mediasId.length === 0) {
         throw new AppError_1.default(http_status_1.status.NOT_ACCEPTABLE, 'mediasId must be a non-empty array.');
     }
-    yield media_service_1.mediaService.deleteMultipleOrSingleMediaById(mediasId);
+    await media_service_1.mediaService.deleteMultipleOrSingleMediaById(mediasId);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.status.OK,
         success: true,
         message: 'Media item(s) deleted successfully.',
         data: null,
     });
-}));
+});
 exports.mediaController = {
     uploadSingleMediaIntoDB,
     uploadMultipleMediaIntoDB,

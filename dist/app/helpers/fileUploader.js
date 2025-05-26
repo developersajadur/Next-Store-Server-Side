@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -39,7 +30,7 @@ const bufferToStream = (buffer) => {
     readable.push(null);
     return readable;
 };
-const uploadToCloudinary = (file) => __awaiter(void 0, void 0, void 0, function* () {
+const uploadToCloudinary = async (file) => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary_1.v2.uploader.upload_stream((error, result) => {
             if (error)
@@ -48,10 +39,10 @@ const uploadToCloudinary = (file) => __awaiter(void 0, void 0, void 0, function*
         });
         bufferToStream(file.buffer).pipe(uploadStream);
     });
-});
-const uploadMultipleToCloudinary = (files) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const uploadMultipleToCloudinary = async (files) => {
     return Promise.all(files.map(file => uploadToCloudinary(file)));
-});
+};
 exports.fileUploads = {
     upload,
     uploadToCloudinary,

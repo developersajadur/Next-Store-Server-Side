@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -25,17 +16,17 @@ const payment_utils_1 = require("../Payment/payment.utils");
 const order_constant_1 = require("./order.constant");
 const user_constant_1 = require("../User/user.constant");
 const user_model_1 = require("../User/user.model");
-const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, void 0, function* () {
+const createOrder = async (userId, payload, client_ip) => {
     var _a;
-    const user = (yield user_model_1.UserModel.findById(userId));
+    const user = (await user_model_1.UserModel.findById(userId));
     if (!user || user.isBlocked)
         if (!((_a = payload === null || payload === void 0 ? void 0 : payload.products) === null || _a === void 0 ? void 0 : _a.length)) {
             throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, 'Order is not specified');
         }
     const products = payload.products;
     let totalPrice = 0;
-    const productDetails = yield Promise.all(products.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-        const product = yield product_model_1.ProductModel.findById(item.product);
+    const productDetails = await Promise.all(products.map(async (item) => {
+        const product = await product_model_1.ProductModel.findById(item.product);
         if (!product || product.isDeleted) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, `Product not found`);
         }
@@ -43,13 +34,13 @@ const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, vo
             throw new AppError_1.default(http_status_1.default.NOT_ACCEPTABLE, `Not enough stock for ${product.title}`);
         }
         product.stock_quantity -= item.quantity;
-        yield product.save();
+        await product.save();
         const subtotal = product.price * item.quantity;
         totalPrice += subtotal;
         return { product: product._id, quantity: item.quantity };
-    })));
+    }));
     // create order
-    const order = yield order_model_1.default.create(Object.assign(Object.assign({}, payload), { userId: user._id, products: productDetails, totalPrice }));
+    const order = await order_model_1.default.create(Object.assign(Object.assign({}, payload), { userId: user._id, products: productDetails, totalPrice }));
     if (payload.method === 'online') {
         const shurjopayPayload = {
             amount: totalPrice,
@@ -62,10 +53,10 @@ const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, vo
             customer_city: user.city,
             client_ip,
         };
-        const payment = yield payment_utils_1.paymentUtils.makePaymentAsync(shurjopayPayload);
+        const payment = await payment_utils_1.paymentUtils.makePaymentAsync(shurjopayPayload);
         // console.log(payment, "payment");
         if ((payment === null || payment === void 0 ? void 0 : payment.transactionStatus) && payment.checkout_url) {
-            yield payment_model_1.PaymentModel.create({
+            await payment_model_1.PaymentModel.create({
                 userId: user._id,
                 orderId: order._id,
                 amount: totalPrice,
@@ -77,21 +68,21 @@ const createOrder = (userId, payload, client_ip) => __awaiter(void 0, void 0, vo
         return payment.checkout_url;
     }
     return;
-});
-const getOrders = (query) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getOrders = async (query) => {
     const productQuery = new QueryBuilder_1.default(order_model_1.default.find().populate('userId'), query)
         .search(order_constant_1.orderSearchableFields)
         .filter()
         .sort()
         .paginate()
         .fields();
-    const result = yield productQuery.modelQuery;
-    const meta = yield productQuery.countTotal();
+    const result = await productQuery.modelQuery;
+    const meta = await productQuery.countTotal();
     return { data: result, meta };
-});
-const getSingleOrderById = (orderId, role, userId) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getSingleOrderById = async (orderId, role, userId) => {
     if (role === user_constant_1.USER_ROLE.customer) {
-        const order = yield order_model_1.default.findById(orderId);
+        const order = await order_model_1.default.findById(orderId);
         if (!order) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order Not Found');
         }
@@ -102,23 +93,23 @@ const getSingleOrderById = (orderId, role, userId) => __awaiter(void 0, void 0, 
         return order;
     }
     if (role === user_constant_1.USER_ROLE.admin) {
-        const order = yield order_model_1.default.findById(orderId);
+        const order = await order_model_1.default.findById(orderId);
         if (!order) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order Not Found');
         }
         return order;
     }
     return null;
-});
-const updateOrderStatus = (orderId, status) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = yield mongoose_1.default.startSession();
+};
+const updateOrderStatus = async (orderId, status) => {
+    const session = await mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const order = yield order_model_1.default.findById(orderId).session(session);
+        const order = await order_model_1.default.findById(orderId).session(session);
         if (!order) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order not found');
         }
-        const payment = yield payment_model_1.PaymentModel.findOne({
+        const payment = await payment_model_1.PaymentModel.findOne({
             orderId: orderId
         }).session(session);
         if (!payment ||
@@ -144,21 +135,21 @@ const updateOrderStatus = (orderId, status) => __awaiter(void 0, void 0, void 0,
         if (nextStatus === 'Delivered') {
             order.DeliveredAt = new Date();
         }
-        yield order.save({ session });
-        yield session.commitTransaction();
+        await order.save({ session });
+        await session.commitTransaction();
         session.endSession();
         return order;
     }
     catch (error) {
-        yield session.abortTransaction();
+        await session.abortTransaction();
         session.endSession();
         throw error;
     }
-});
-const getOrdersForMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const data = yield order_model_1.default.find({ userId }).lean();
+};
+const getOrdersForMe = async (userId) => {
+    const data = await order_model_1.default.find({ userId }).lean();
     return data;
-});
+};
 exports.orderService = {
     createOrder,
     getOrders,
