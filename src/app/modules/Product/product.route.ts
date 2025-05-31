@@ -21,6 +21,7 @@ router.get('/get-all-home-products', productController.getHomeProducts);
 router.get('/get-by-id/:id', productController.getSingleProductById);
 
 router.get('/get-by-slug/:slug', productController.getSingleProductBySlug);
+router.get('/get-related-product-by-slug/:slug', productController.getRelatedProducts);
 
 router.patch(
   '/update/:id',

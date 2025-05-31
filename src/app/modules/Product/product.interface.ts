@@ -7,20 +7,20 @@ export type TSpecificationItem = {
 };
 
 // Variant Type
-export type TVariant = {
-  _id: Types.ObjectId;
-  color?: Types.ObjectId;
-  size?: string;
-  weight?: number;
-  price: number;
-  regular_price?: number;
-  sale_price?: number;
-  stock_quantity: number;
-  additional?: string;
-  image: Types.ObjectId;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-};
+// export type TVariant = {
+//   _id: Types.ObjectId;
+//   color?: Types.ObjectId;
+//   size?: string;
+//   weight?: number;
+//   price: number;
+//   regular_price?: number;
+//   sale_price?: number;
+//   stock_quantity: number;
+//   additional?: string;
+//   image: Types.ObjectId;
+//   createdAt: Date | string;
+//   updatedAt: Date | string;
+// };
 
 // Product Type
 export type TProduct = {
@@ -36,7 +36,8 @@ export type TProduct = {
   price: number;
   regular_price: number;
   sale_price: number;
-  variants: TVariant[];
+  // variants: TVariant[];
+  color?: string;
   stock_quantity: number;
   specifications: TSpecificationItem[];
   warranty?: string;

@@ -81,6 +81,18 @@ const updateSingleProductById = catchAsync(async (req, res) => {
   });
 });
 
+const getRelatedProducts = catchAsync(async (req, res) => {
+  const products = await ProductService.getRelatedProducts(
+    req?.params?.slug
+  );
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Related Product retrieved successfully',
+    data: products
+  });
+});
+
 const deleteMultipleOrSingleMediaById = catchAsync(async (req, res) => {
   const { productsId } = req.body;
 
@@ -108,5 +120,6 @@ export const productController = {
   deleteMultipleOrSingleMediaById,
   getSingleProductBySlug,
   getAllProductsForProductCard,
-  getHomeProducts
+  getHomeProducts,
+  getRelatedProducts
 };

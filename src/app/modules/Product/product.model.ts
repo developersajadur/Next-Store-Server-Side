@@ -12,22 +12,22 @@ const SpecificationItemSchema = new Schema(
 );
 
 // Variant Schema
-const VariantSchema = new Schema(
-  {
-    color: { type: String },
-    size: { type: String },
-    weight: { type: Number },
-    price: { type: Number, required: true },
-    regular_price: { type: Number },
-    sale_price: { type: Number },
-    stock_quantity: { type: Number, required: true },
-    additional: { type: String },
-    image: { type: Schema.Types.ObjectId, ref: 'Media' },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-  },
-  { _id: true },
-);
+// const VariantSchema = new Schema(
+//   {
+//     color: { type: String },
+//     size: { type: String },
+//     weight: { type: Number },
+//     price: { type: Number, required: true },
+//     regular_price: { type: Number },
+//     sale_price: { type: Number },
+//     stock_quantity: { type: Number, required: true },
+//     additional: { type: String },
+//     image: { type: Schema.Types.ObjectId, ref: 'Media' },
+//     createdAt: { type: Date, default: Date.now },
+//     updatedAt: { type: Date, default: Date.now },
+//   },
+//   { _id: true },
+// );
 
 // Product Schema
 const ProductSchema = new Schema<TProduct>(
@@ -41,10 +41,11 @@ const ProductSchema = new Schema<TProduct>(
     brand: { type: Schema.Types.ObjectId, ref: 'Brand', required: true },
     description: { type: String, required: true, trim: true },
     short_description: { type: String, trim: true },
+    color: { type: String, trim: true },
     price: { type: Number, required: true, min: 0 },
     regular_price: { type: Number },
     sale_price: { type: Number },
-    variants: { type: [VariantSchema], default: [] },
+    // variants: { type: [VariantSchema], default: [] },
     stock_quantity: { type: Number, required: true, min: 0 },
     specifications: { type: [SpecificationItemSchema], default: [] },
     warranty: { type: String },

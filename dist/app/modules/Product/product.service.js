@@ -42,19 +42,6 @@ const createProductIntoDb = async (product) => {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Some gallery images were not found or have been deleted');
         }
     }
-    // Validate variants Images (if any)
-    if (product.variants && product.variants.length > 0) {
-        const variantImageIds = product.variants
-            .filter((variant) => variant.image)
-            .map((variant) => variant.image);
-        const variantsImages = await media_model_1.MediaModel.find({
-            _id: { $in: variantImageIds },
-            isDeleted: false,
-        });
-        if (variantsImages.length !== variantImageIds.length) {
-            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Some variant images were not found or have been deleted.');
-        }
-    }
     // Validate Categories
     const categories = await category_model_1.CategoryModel.find({
         _id: { $in: product.category },
@@ -105,7 +92,27 @@ const getSingleProductBySlug = async (slug) => {
     const product = await product_model_1.ProductModel.findOne({
         slug,
         isDeleted: false,
-    });
+    })
+        .populate(product_constant_1.populateImage)
+        .populate({
+        path: 'gallery_images',
+        select: 'url fileName',
+    })
+        .populate({
+        path: 'category',
+        select: 'title slug image',
+        populate: product_constant_1.populateImage,
+    })
+        .populate({
+        path: 'brand',
+        select: 'title slug image',
+        populate: product_constant_1.populateImage,
+    })
+        .populate({
+        path: 'variants',
+        populate: product_constant_1.populateImage,
+    })
+        .lean();
     if (!product) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
     }
@@ -116,6 +123,40 @@ const updateSingleProductById = async (_id, updatedProduct) => {
         const product = await product_model_1.ProductModel.findOne({ _id, isDeleted: false });
         if (!product || product.isDeleted) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
+        }
+        // Validate Brand
+        const brand = await brand_model_1.BrandModel.findOne({
+            _id: product.brand,
+            isDeleted: false,
+        });
+        if (!brand) {
+            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Brand not found or has been deleted');
+        }
+        // Validate Main Image
+        const mainImage = await media_model_1.MediaModel.findOne({
+            _id: product.image,
+            isDeleted: false,
+        });
+        if (!mainImage) {
+            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Main product image not found or has been deleted');
+        }
+        // Validate Gallery Images (if any)
+        if (product.gallery_images && product.gallery_images.length > 0) {
+            const galleryImages = await media_model_1.MediaModel.find({
+                _id: { $in: product.gallery_images },
+                isDeleted: false,
+            });
+            if (galleryImages.length !== product.gallery_images.length) {
+                throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Some gallery images were not found or have been deleted');
+            }
+        }
+        // Validate Categories
+        const categories = await category_model_1.CategoryModel.find({
+            _id: { $in: product.category },
+            isDeleted: false,
+        });
+        if (categories.length !== product.category.length) {
+            throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Some categories were not found or have been deleted');
         }
         if (updatedProduct.title) {
             updatedProduct.slug = await (0, generateUniqueSlug_1.generateUniqueSlug)(product.title, product_model_1.ProductModel);
@@ -141,6 +182,25 @@ const getHomeProducts = async () => {
     const result = await (0, product_utils_1.getHomeProductsUtils)();
     return result;
 };
+const getRelatedProducts = async (slug) => {
+    const product = await product_model_1.ProductModel.findOne({ slug });
+    if (!product || product.isDeleted) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
+    }
+    if (!product.category || product.category.length === 0) {
+        return [];
+    }
+    const relatedProducts = await product_model_1.ProductModel.find({
+        category: { $in: product.category },
+        slug: { $ne: slug },
+        isDeleted: false,
+    })
+        .select(product_constant_1.baseSelectFields)
+        .populate(product_constant_1.populateImage)
+        .limit(product_constant_1.LIMIT_PER_SECTION)
+        .exec();
+    return relatedProducts;
+};
 exports.ProductService = {
     createProductIntoDb,
     getAllProducts,
@@ -149,5 +209,6 @@ exports.ProductService = {
     updateSingleProductById,
     deleteMultipleOrSingleMediaById,
     getAllProductsForProductCard,
-    getHomeProducts
+    getHomeProducts,
+    getRelatedProducts,
 };

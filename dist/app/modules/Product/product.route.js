@@ -17,6 +17,7 @@ router.get('/get-all-for-product-card', product_controller_1.productController.g
 router.get('/get-all-home-products', product_controller_1.productController.getHomeProducts);
 router.get('/get-by-id/:id', product_controller_1.productController.getSingleProductById);
 router.get('/get-by-slug/:slug', product_controller_1.productController.getSingleProductBySlug);
+router.get('/get-related-product-by-slug/:slug', product_controller_1.productController.getRelatedProducts);
 router.patch('/update/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), product_controller_1.productController.updateSingleProductById);
 router.delete('/delete-products', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), product_controller_1.productController.deleteMultipleOrSingleMediaById);
 exports.productRoute = router;

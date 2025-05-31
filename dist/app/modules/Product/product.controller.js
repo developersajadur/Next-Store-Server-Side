@@ -78,6 +78,16 @@ const updateSingleProductById = (0, catchAsync_1.default)(async (req, res) => {
         data: updatedProduct,
     });
 });
+const getRelatedProducts = (0, catchAsync_1.default)(async (req, res) => {
+    var _a;
+    const products = await product_service_1.ProductService.getRelatedProducts((_a = req === null || req === void 0 ? void 0 : req.params) === null || _a === void 0 ? void 0 : _a.slug);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Related Product retrieved successfully',
+        data: products
+    });
+});
 const deleteMultipleOrSingleMediaById = (0, catchAsync_1.default)(async (req, res) => {
     const { productsId } = req.body;
     if (!Array.isArray(productsId) || productsId.length === 0) {
@@ -99,5 +109,6 @@ exports.productController = {
     deleteMultipleOrSingleMediaById,
     getSingleProductBySlug,
     getAllProductsForProductCard,
-    getHomeProducts
+    getHomeProducts,
+    getRelatedProducts
 };

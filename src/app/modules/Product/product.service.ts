@@ -2,7 +2,12 @@
 import QueryBuilder from '../../builders/QueryBuilder';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
-import { baseSelectFields, populateImage, productSearchableFields } from './product.constant';
+import {
+  baseSelectFields,
+  LIMIT_PER_SECTION,
+  populateImage,
+  productSearchableFields,
+} from './product.constant';
 import { TProduct } from './product.interface';
 import { ProductModel } from './product.model';
 import { generateUniqueSlug } from '../../helpers/generateUniqueSlug';
@@ -45,25 +50,6 @@ const createProductIntoDb = async (product: Partial<TProduct>) => {
       throw new AppError(
         status.NOT_FOUND,
         'Some gallery images were not found or have been deleted',
-      );
-    }
-  }
-
-  // Validate variants Images (if any)
-  if (product.variants && product.variants.length > 0) {
-    const variantImageIds = product.variants
-      .filter((variant) => variant.image)
-      .map((variant) => variant.image);
-
-    const variantsImages = await MediaModel.find({
-      _id: { $in: variantImageIds },
-      isDeleted: false,
-    });
-
-    if (variantsImages.length !== variantImageIds.length) {
-      throw new AppError(
-        status.NOT_FOUND,
-        'Some variant images were not found or have been deleted.',
       );
     }
   }
@@ -137,7 +123,27 @@ const getSingleProductBySlug = async (slug: string) => {
   const product = await ProductModel.findOne({
     slug,
     isDeleted: false,
-  });
+  })
+    .populate(populateImage)
+    .populate({
+      path: 'gallery_images',
+      select: 'url fileName',
+    })
+    .populate({
+      path: 'category',
+      select: 'title slug image',
+      populate: populateImage,
+    })
+    .populate({
+      path: 'brand',
+      select: 'title slug image',
+      populate: populateImage,
+    })
+    .populate({
+      path: 'variants',
+      populate: populateImage,
+    })
+    .lean();
   if (!product) {
     throw new AppError(status.NOT_FOUND, 'Product Not Found');
   }
@@ -153,6 +159,59 @@ const updateSingleProductById = async (
     if (!product || product.isDeleted) {
       throw new AppError(status.NOT_FOUND, 'Product Not Found');
     }
+
+    // Validate Brand
+    const brand = await BrandModel.findOne({
+      _id: product.brand,
+      isDeleted: false,
+    });
+    if (!brand) {
+      throw new AppError(
+        status.NOT_FOUND,
+        'Brand not found or has been deleted',
+      );
+    }
+
+    // Validate Main Image
+    const mainImage = await MediaModel.findOne({
+      _id: product.image,
+      isDeleted: false,
+    });
+    if (!mainImage) {
+      throw new AppError(
+        status.NOT_FOUND,
+        'Main product image not found or has been deleted',
+      );
+    }
+
+    // Validate Gallery Images (if any)
+    if (product.gallery_images && product.gallery_images.length > 0) {
+      const galleryImages = await MediaModel.find({
+        _id: { $in: product.gallery_images },
+        isDeleted: false,
+      });
+
+      if (galleryImages.length !== product.gallery_images.length) {
+        throw new AppError(
+          status.NOT_FOUND,
+          'Some gallery images were not found or have been deleted',
+        );
+      }
+    }
+
+    // Validate Categories
+    const categories = await CategoryModel.find({
+      _id: { $in: product.category },
+      isDeleted: false,
+    });
+
+    if (categories.length !== product.category!.length) {
+      throw new AppError(
+        status.NOT_FOUND,
+        'Some categories were not found or have been deleted',
+      );
+    }
+
     if (updatedProduct.title) {
       updatedProduct.slug = await generateUniqueSlug(
         product.title,
@@ -193,11 +252,31 @@ const deleteMultipleOrSingleMediaById = async (
   );
 };
 
-
-
 const getHomeProducts = async () => {
- const result = await getHomeProductsUtils()
- return result
+  const result = await getHomeProductsUtils();
+  return result;
+};
+
+const getRelatedProducts = async (slug: string) => {
+  const product = await ProductModel.findOne({ slug });
+  if (!product || product.isDeleted) {
+    throw new AppError(status.NOT_FOUND, 'Product Not Found');
+  }
+  if (!product.category || product.category.length === 0) {
+    return [];
+  }
+
+  const relatedProducts = await ProductModel.find({
+    category: { $in: product.category },
+    slug: { $ne: slug },
+    isDeleted: false,
+  })
+    .select(baseSelectFields)
+    .populate(populateImage)
+    .limit(LIMIT_PER_SECTION)
+    .exec();
+
+  return relatedProducts;
 };
 
 export const ProductService = {
@@ -208,5 +287,6 @@ export const ProductService = {
   updateSingleProductById,
   deleteMultipleOrSingleMediaById,
   getAllProductsForProductCard,
-  getHomeProducts
+  getHomeProducts,
+  getRelatedProducts,
 };
