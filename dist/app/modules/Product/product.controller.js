@@ -32,6 +32,15 @@ const getAllProducts = (0, catchAsync_1.default)(async (req, res) => {
         data: products,
     });
 });
+const getAllProductsForCategories = (0, catchAsync_1.default)(async (req, res) => {
+    const products = await product_service_1.ProductService.getAllProductsForCategories(req.query, req.params.categorySlug);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Products retrieved Gor Categories successfully',
+        data: products,
+    });
+});
 const getAllProductsForProductCard = (0, catchAsync_1.default)(async (req, res) => {
     const products = await product_service_1.ProductService.getAllProductsForProductCard(req.query);
     (0, sendResponse_1.default)(res, {
@@ -110,5 +119,6 @@ exports.productController = {
     getSingleProductBySlug,
     getAllProductsForProductCard,
     getHomeProducts,
-    getRelatedProducts
+    getRelatedProducts,
+    getAllProductsForCategories
 };

@@ -15,6 +15,7 @@ router.post(
 );
 
 router.get('/get-all', productController.getAllProducts);
+router.get('/get-all-category-products/:categorySlug', productController.getAllProductsForCategories);
 router.get('/get-all-for-product-card', productController.getAllProductsForProductCard);
 router.get('/get-all-home-products', productController.getHomeProducts);
 

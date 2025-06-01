@@ -11,64 +11,86 @@ class QueryBuilder<T> {
   }
 
   search(searchableFields: string[]) {
-    const search = this?.query?.search;
-    if (search) {
+    const search = this.query.search;
+    if (typeof search === 'string' && search.trim().length > 0) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableFields.map(
           (field) =>
             ({
               [field]: { $regex: search, $options: 'i' },
-            }) as FilterQuery<T>,
+            } as FilterQuery<T>),
         ),
       });
     }
-
     return this;
   }
 
   filter() {
-    const queryObj = { ...this.query }; // copy
+    // Copy query object to manipulate
+    const queryObj = { ...this.query };
 
-    // Filtering
-    const excludeFields = ['search', 'sort', 'limit', 'page', 'fields'];
-    excludeFields.forEach((el) => delete queryObj[el]);
+    // Fields to exclude from filtering
+    const excludeFields = ['search', 'sort', 'sortBy', 'limit', 'page', 'fields', 'availability'];
+    excludeFields.forEach((field) => delete queryObj[field]);
 
-    // Handle minPrice and maxPrice filtering
-    if (queryObj.minPrice || queryObj.maxPrice) {
-      const priceQuery: Record<string, any> = {};
-
-      if (queryObj.minPrice) {
-        priceQuery['$gte'] = queryObj.minPrice; // minPrice filter
+    // Price range filtering
+    if (queryObj.minPrice !== undefined || queryObj.maxPrice !== undefined) {
+      const priceFilter: Record<string, any> = {};
+      if (queryObj.minPrice !== undefined) {
+        priceFilter['$gte'] = Number(queryObj.minPrice);
         delete queryObj.minPrice;
       }
-
-      if (queryObj.maxPrice) {
-        priceQuery['$lte'] = queryObj.maxPrice; // maxPrice filter
+      if (queryObj.maxPrice !== undefined) {
+        priceFilter['$lte'] = Number(queryObj.maxPrice);
         delete queryObj.maxPrice;
       }
-
-      // If price filter exists, add to the query
-      if (Object.keys(priceQuery).length > 0) {
-        queryObj['price'] = priceQuery;
+      if (Object.keys(priceFilter).length > 0) {
+        queryObj['price'] = priceFilter;
       }
     }
 
+    // Availability filtering
+    const availability = this.query.availability;
+    if (availability === 'in-stock') {
+      queryObj['stock_quantity'] = { $gt: 0 };
+    } else if (availability === 'out-of-stock') {
+      queryObj['stock_quantity'] = 0;
+    }
+
+    // Apply the final filter query
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
 
     return this;
   }
 
+
   sort() {
-    const sort =
-      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
-    this.modelQuery = this.modelQuery.sort(sort as string);
+    let sortStr = '-createdAt'; // default sort
+
+    if (typeof this.query.sortBy === 'string' && this.query.sortBy.trim() !== '') {
+      switch (this.query.sortBy) {
+        case 'price-asc':
+          sortStr = 'price';
+          break;
+        case 'price-desc':
+          sortStr = '-price';
+          break;
+        default:
+          sortStr = this.query.sortBy.split(',').join(' ');
+          break;
+      }
+    } else if (typeof this.query.sort === 'string' && this.query.sort.trim() !== '') {
+      sortStr = this.query.sort.split(',').join(' ');
+    }
+
+    this.modelQuery = this.modelQuery.sort(sortStr);
 
     return this;
   }
 
   paginate() {
-    const page = Number(this?.query?.page) || 1;
-    const limit = Number(this?.query?.limit) || 10;
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
@@ -76,18 +98,26 @@ class QueryBuilder<T> {
     return this;
   }
 
+ 
   fields() {
-    const fields =
-      (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v';
+    const fields = typeof this.query.fields === 'string'
+      ? this.query.fields.split(',').join(' ')
+      : '-__v';
 
     this.modelQuery = this.modelQuery.select(fields);
+
     return this;
   }
+
+  /**
+   * Count total documents for current filters and calculate pagination metadata.
+   */
   async countTotal() {
-    const totalQueries = this.modelQuery.getFilter();
-    const total = await this.modelQuery.model.countDocuments(totalQueries);
-    const page = Number(this?.query?.page) || 1;
-    const limit = Number(this?.query?.limit) || 10;
+    const filter = this.modelQuery.getFilter();
+    const total = await this.modelQuery.model.countDocuments(filter);
+
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
     const totalPage = Math.ceil(total / limit);
 
     return {

@@ -26,6 +26,7 @@ const loginUser = async (payload) => {
     const jwtPayload = {
         userId: user === null || user === void 0 ? void 0 : user._id.toString(),
         email: user === null || user === void 0 ? void 0 : user.email,
+        profileImage: user === null || user === void 0 ? void 0 : user.profileImage,
         role: user === null || user === void 0 ? void 0 : user.role,
         loginType: user.loginType
     };

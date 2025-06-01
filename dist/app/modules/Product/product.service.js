@@ -65,6 +65,27 @@ const getAllProducts = async (query) => {
     const meta = await productQuery.countTotal();
     return { data: result, meta };
 };
+const getAllProductsForCategories = async (query, categorySlug) => {
+    const category = await category_model_1.CategoryModel.findOne({ slug: categorySlug });
+    if (!category) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Category Not Found');
+    }
+    // Build product query
+    const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({
+        isDeleted: false,
+        category: { $in: category._id },
+    })
+        .select(product_constant_1.baseSelectFields)
+        .populate(product_constant_1.populateImage), query)
+        .search(product_constant_1.productSearchableFields)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+    const result = (await productQuery.modelQuery);
+    const meta = await productQuery.countTotal();
+    return { data: result, meta };
+};
 const getAllProductsForProductCard = async (query) => {
     const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({ isDeleted: false })
         .select(product_constant_1.baseSelectFields)
@@ -106,10 +127,6 @@ const getSingleProductBySlug = async (slug) => {
         .populate({
         path: 'brand',
         select: 'title slug image',
-        populate: product_constant_1.populateImage,
-    })
-        .populate({
-        path: 'variants',
         populate: product_constant_1.populateImage,
     })
         .lean();
@@ -211,4 +228,5 @@ exports.ProductService = {
     getAllProductsForProductCard,
     getHomeProducts,
     getRelatedProducts,
+    getAllProductsForCategories,
 };

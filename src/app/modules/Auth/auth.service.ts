@@ -28,6 +28,7 @@ const loginUser = async (payload: TLoginUser): Promise<{ token: string }> => {
   const jwtPayload = {
     userId: user?._id.toString(),
     email: user?.email,
+    profileImage: user?.profileImage,
     role: user?.role,
     loginType: user.loginType
   };

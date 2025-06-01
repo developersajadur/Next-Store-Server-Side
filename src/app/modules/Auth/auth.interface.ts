@@ -7,6 +7,7 @@ export type TLoginUser = {
 export type TJwtPayload = {
   userId: string;
   email: string;
+  profileImage?: string;
   role: string;
   loginType: string;
 };

@@ -36,7 +36,7 @@ const ProductSchema = new mongoose_1.Schema({
     brand: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Brand', required: true },
     description: { type: String, required: true, trim: true },
     short_description: { type: String, trim: true },
-    color: { type: String, trim: true },
+    color: [{ type: String, trim: true }],
     price: { type: Number, required: true, min: 0 },
     regular_price: { type: Number },
     sale_price: { type: Number },

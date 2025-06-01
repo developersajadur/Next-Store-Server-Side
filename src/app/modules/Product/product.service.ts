@@ -89,6 +89,37 @@ const getAllProducts = async (query: Record<string, unknown>) => {
   return { data: result, meta };
 };
 
+const getAllProductsForCategories = async (
+  query: Record<string, unknown>,
+  categorySlug: string,
+) => {
+  const category = await CategoryModel.findOne({ slug: categorySlug });
+  if (!category) {
+    throw new AppError(status.NOT_FOUND, 'Category Not Found');
+  }
+
+  // Build product query
+  const productQuery = new QueryBuilder(
+    ProductModel.find({
+      isDeleted: false,
+      category: { $in: category._id },
+    })
+      .select(baseSelectFields)
+      .populate(populateImage),
+    query,
+  )
+    .search(productSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = (await productQuery.modelQuery) as TProduct[];
+  const meta = await productQuery.countTotal();
+
+  return { data: result, meta };
+};
+
 const getAllProductsForProductCard = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(
     ProductModel.find({ isDeleted: false })
@@ -137,10 +168,6 @@ const getSingleProductBySlug = async (slug: string) => {
     .populate({
       path: 'brand',
       select: 'title slug image',
-      populate: populateImage,
-    })
-    .populate({
-      path: 'variants',
       populate: populateImage,
     })
     .lean();
@@ -289,4 +316,5 @@ export const ProductService = {
   getAllProductsForProductCard,
   getHomeProducts,
   getRelatedProducts,
+  getAllProductsForCategories,
 };
