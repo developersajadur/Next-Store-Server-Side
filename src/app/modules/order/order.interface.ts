@@ -21,6 +21,10 @@ export interface IOrder {
   shippingCost: number;
   couponCode?: number;
   totalPrice: number;
+  method: 'online' | 'cash';
+  orderPhone: string;
+  orderName: string;
+  orderEmail: string;
   note?: string;
   status: IOrderStatus;
   DeliveredAt?: Date;
