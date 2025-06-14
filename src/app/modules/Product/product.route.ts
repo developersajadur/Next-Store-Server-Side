@@ -15,14 +15,26 @@ router.post(
 );
 
 router.get('/get-all', productController.getAllProducts);
-router.get('/get-all-category-products/:categorySlug', productController.getAllProductsForCategories);
-router.get('/get-all-for-product-card', productController.getAllProductsForProductCard);
+router.get(
+  '/get-all-category-products/:categorySlug',
+  productController.getAllProductsForCategories,
+);
+router.get(
+  '/get-all-for-product-card',
+  productController.getAllProductsForProductCard,
+);
 router.get('/get-all-home-products', productController.getHomeProducts);
-
+router.get(
+  '/get-single-product-with-some-data/:slug',
+  productController.getSingleProductWithSomeDataBySlug,
+);
 router.get('/get-by-id/:id', productController.getSingleProductById);
 
 router.get('/get-by-slug/:slug', productController.getSingleProductBySlug);
-router.get('/get-related-product-by-slug/:slug', productController.getRelatedProducts);
+router.get(
+  '/get-related-product-by-slug/:slug',
+  productController.getRelatedProducts,
+);
 
 router.patch(
   '/update/:id',

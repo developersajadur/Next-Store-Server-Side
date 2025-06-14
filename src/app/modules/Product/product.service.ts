@@ -139,6 +139,21 @@ const getAllProductsForProductCard = async (query: Record<string, unknown>) => {
   return { data: result, meta };
 };
 
+const getSingleProductWithSomeDataBySlug = async (slug: string) => {
+  const product = await ProductModel.findOne({
+    slug,
+    isDeleted: false,
+  })
+    .select(baseSelectFields)
+    .populate(populateImage)
+
+    if(!product){
+    throw new AppError(status.NOT_FOUND, 'Product Not Found');
+    }
+
+    return product;
+}
+
 const getSingleProductById = async (_id: string) => {
   const product = await ProductModel.findById({
     _id,
@@ -317,4 +332,5 @@ export const ProductService = {
   getHomeProducts,
   getRelatedProducts,
   getAllProductsForCategories,
+  getSingleProductWithSomeDataBySlug
 };

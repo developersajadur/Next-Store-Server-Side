@@ -16,6 +16,7 @@ router.get('/get-all', product_controller_1.productController.getAllProducts);
 router.get('/get-all-category-products/:categorySlug', product_controller_1.productController.getAllProductsForCategories);
 router.get('/get-all-for-product-card', product_controller_1.productController.getAllProductsForProductCard);
 router.get('/get-all-home-products', product_controller_1.productController.getHomeProducts);
+router.get('/get-single-product-with-some-data/:slug', product_controller_1.productController.getSingleProductWithSomeDataBySlug);
 router.get('/get-by-id/:id', product_controller_1.productController.getSingleProductById);
 router.get('/get-by-slug/:slug', product_controller_1.productController.getSingleProductBySlug);
 router.get('/get-related-product-by-slug/:slug', product_controller_1.productController.getRelatedProducts);

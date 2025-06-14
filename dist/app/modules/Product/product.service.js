@@ -99,6 +99,18 @@ const getAllProductsForProductCard = async (query) => {
     const meta = await productQuery.countTotal();
     return { data: result, meta };
 };
+const getSingleProductWithSomeDataBySlug = async (slug) => {
+    const product = await product_model_1.ProductModel.findOne({
+        slug,
+        isDeleted: false,
+    })
+        .select(product_constant_1.baseSelectFields)
+        .populate(product_constant_1.populateImage);
+    if (!product) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Product Not Found');
+    }
+    return product;
+};
 const getSingleProductById = async (_id) => {
     const product = await product_model_1.ProductModel.findById({
         _id,
@@ -229,4 +241,5 @@ exports.ProductService = {
     getHomeProducts,
     getRelatedProducts,
     getAllProductsForCategories,
+    getSingleProductWithSomeDataBySlug
 };

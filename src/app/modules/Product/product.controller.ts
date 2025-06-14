@@ -47,6 +47,15 @@ const getAllProductsForProductCard = catchAsync(async (req, res) => {
     data: products,
   });
 });
+const getSingleProductWithSomeDataBySlug = catchAsync(async (req, res) => {
+  const products = await ProductService.getSingleProductWithSomeDataBySlug(req.params.slug);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Products Some Data retrieved successfully',
+    data: products,
+  });
+});
 
 const getHomeProducts = catchAsync(async (req, res) => {
   const products = await ProductService.getHomeProducts();
@@ -132,5 +141,6 @@ export const productController = {
   getAllProductsForProductCard,
   getHomeProducts,
   getRelatedProducts,
-  getAllProductsForCategories
+  getAllProductsForCategories,
+  getSingleProductWithSomeDataBySlug
 };

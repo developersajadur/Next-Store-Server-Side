@@ -50,6 +50,15 @@ const getAllProductsForProductCard = (0, catchAsync_1.default)(async (req, res) 
         data: products,
     });
 });
+const getSingleProductWithSomeDataBySlug = (0, catchAsync_1.default)(async (req, res) => {
+    const products = await product_service_1.ProductService.getSingleProductWithSomeDataBySlug(req.params.slug);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Products Some Data retrieved successfully',
+        data: products,
+    });
+});
 const getHomeProducts = (0, catchAsync_1.default)(async (req, res) => {
     const products = await product_service_1.ProductService.getHomeProducts();
     (0, sendResponse_1.default)(res, {
@@ -120,5 +129,6 @@ exports.productController = {
     getAllProductsForProductCard,
     getHomeProducts,
     getRelatedProducts,
-    getAllProductsForCategories
+    getAllProductsForCategories,
+    getSingleProductWithSomeDataBySlug
 };
