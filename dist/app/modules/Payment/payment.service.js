@@ -11,22 +11,44 @@ const payment_constant_1 = require("./payment.constant");
 const payment_model_1 = require("./payment.model");
 const payment_utils_1 = require("./payment.utils");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
+const order_model_1 = __importDefault(require("../Order/order.model"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const verifyPayment = async (order_id) => {
-    const verifiedPayment = await payment_utils_1.paymentUtils.verifyPaymentAsync(order_id);
-    // console.log(verifiedPayment);
-    if (verifiedPayment.length) {
-        const paymentStatus = verifiedPayment[0].bank_status === 'Success'
-            ? 'paid'
-            : verifiedPayment[0].bank_status === 'failed'
-                ? 'pending'
-                : verifiedPayment[0].bank_status === 'Cancel'
-                    ? 'failed'
-                    : 'failed';
-        const updatedPayment = await payment_model_1.PaymentModel.findOneAndUpdate({ sp_order_id: order_id }, {
-            gatewayResponse: verifiedPayment[0],
-            status: paymentStatus,
-        }, { new: true });
-        return updatedPayment;
+    const session = await mongoose_1.default.startSession();
+    try {
+        session.startTransaction();
+        const verifiedPayment = await payment_utils_1.paymentUtils.verifyPaymentAsync(order_id);
+        if (verifiedPayment.length) {
+            const paymentStatus = verifiedPayment[0].bank_status === 'Success'
+                ? 'paid'
+                : verifiedPayment[0].bank_status === 'failed'
+                    ? 'pending'
+                    : verifiedPayment[0].bank_status === 'Cancel'
+                        ? 'failed'
+                        : 'failed';
+            const updatedPayment = await payment_model_1.PaymentModel.findOneAndUpdate({ sp_order_id: order_id }, {
+                gatewayResponse: verifiedPayment[0],
+                status: paymentStatus,
+            }, {
+                new: true,
+                session,
+            }).populate('userId', 'name email phone');
+            if (!updatedPayment) {
+                throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Payment Record Not Found');
+            }
+            await order_model_1.default.findByIdAndUpdate(updatedPayment === null || updatedPayment === void 0 ? void 0 : updatedPayment.orderId, {
+                isPaid: paymentStatus,
+                paidAt: paymentStatus === 'paid' ? new Date() : undefined,
+            }, { session });
+            await session.commitTransaction();
+            session.endSession();
+            return updatedPayment;
+        }
+    }
+    catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
     }
 };
 const getAllPayment = async (query) => {

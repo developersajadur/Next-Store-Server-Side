@@ -109,7 +109,16 @@ const updateOrderStatus = async (orderId, status) => {
         if (!order) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order not found');
         }
-        const payment = await payment_model_1.PaymentModel.findOne({
+        if (order.isPaid !== "paid") {
+            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Order is not paid yet, cannot update status');
+        }
+        if (order.status === 'Delivered' || order.status === 'Cancelled') {
+            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, `Order is already ${order.status}`);
+        }
+        if (order.status === 'Returned') {
+            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Order is already returned and cannot be updated');
+        }
+        const payment = await payment_model_1.PaymentModel.findById({
             orderId: orderId
         }).session(session);
         if (!payment ||

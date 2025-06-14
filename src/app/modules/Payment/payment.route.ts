@@ -7,7 +7,7 @@ import { paymentController } from './payment.controller';
 const router = Router();
 
 router.get(
-  '/verify-payment',
+  '/payment-confirmation',
   auth(USER_ROLE.customer),
   paymentController.verifyPayment,
 );

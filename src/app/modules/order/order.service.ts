@@ -132,6 +132,7 @@ const getSingleOrderById = async (
   return null;
 };
 
+
 const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -142,7 +143,29 @@ const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
       throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
     }
 
-    const payment = await PaymentModel.findOne({
+    if(order.isPaid !== "paid"){
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Order is not paid yet, cannot update status',
+      );
+    }
+
+    
+    if (order.status === 'Delivered' || order.status === 'Cancelled') {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Order is already ${order.status}`,
+      );
+    }
+
+    if (order.status === 'Returned') {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Order is already returned and cannot be updated',
+      );
+    }
+
+    const payment = await PaymentModel.findById({
       orderId: orderId
     }).session(session);
 

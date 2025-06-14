@@ -48,6 +48,14 @@ const OrderSchema = new mongoose_1.Schema({
         enum: ['online', 'cash'],
         required: [true, 'Payment method is required'],
     },
+    isPaid: {
+        type: String,
+        enum: ['pending', 'paid', 'failed', 'refunded'],
+        default: 'pending',
+    },
+    paidAt: {
+        type: Date,
+    },
     shippingCost: {
         type: Number,
         required: true,

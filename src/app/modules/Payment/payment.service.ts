@@ -6,32 +6,68 @@ import { paymentSearchableFields } from './payment.constant';
 import { PaymentModel } from './payment.model';
 import { paymentUtils } from './payment.utils';
 import AppError from '../../errors/AppError';
+import Order from '../Order/order.model';
+import mongoose from 'mongoose';
+
+
+
 
 const verifyPayment = async (order_id: string) => {
-  const verifiedPayment = await paymentUtils.verifyPaymentAsync(order_id);
-  // console.log(verifiedPayment);
+  const session = await mongoose.startSession();
 
-  if (verifiedPayment.length) {
-    const paymentStatus =
-      verifiedPayment[0].bank_status === 'Success'
-        ? 'paid'
-        : verifiedPayment[0].bank_status === 'failed'
+  try {
+    session.startTransaction();
+
+    const verifiedPayment = await paymentUtils.verifyPaymentAsync(order_id);
+
+    if (verifiedPayment.length) {
+      const paymentStatus =
+        verifiedPayment[0].bank_status === 'Success'
+          ? 'paid'
+          : verifiedPayment[0].bank_status === 'failed'
           ? 'pending'
           : verifiedPayment[0].bank_status === 'Cancel'
-            ? 'failed'
-            : 'failed';
+          ? 'failed'
+          : 'failed';
 
-    const updatedPayment = await PaymentModel.findOneAndUpdate(
-      { sp_order_id: order_id },
-      {
-        gatewayResponse: verifiedPayment[0],
-        status: paymentStatus,
-      },
-      { new: true },
-    );
-    return updatedPayment;
+      const updatedPayment = await PaymentModel.findOneAndUpdate(
+        { sp_order_id: order_id },
+        {
+          gatewayResponse: verifiedPayment[0],
+          status: paymentStatus,
+        },
+        {
+          new: true,
+          session,
+        }
+      ).populate('userId', 'name email phone');
+
+      if (!updatedPayment) {
+        throw new AppError(httpStatus.NOT_FOUND, 'Payment Record Not Found');
+      }
+
+      await Order.findByIdAndUpdate(
+        updatedPayment?.orderId,
+        {
+          isPaid: paymentStatus,
+          paidAt: paymentStatus === 'paid' ? new Date() : undefined,
+        },
+        { session }
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return updatedPayment;
+    }
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
 };
+
+
 
 const getAllPayment = async (query: Record<string, unknown>) => {
   const paymentQuery = new QueryBuilder(

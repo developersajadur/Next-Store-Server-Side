@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
 export const OrderStatus = {
   Pending: 'Pending',
@@ -26,7 +26,9 @@ export interface IOrder {
   orderName: string;
   orderEmail: string;
   note?: string;
+  isPaid: 'pending' | 'paid' | 'failed' | 'refunded';
   status: IOrderStatus;
+  paidAt?: Date;
   DeliveredAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
