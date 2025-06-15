@@ -63,7 +63,7 @@ const getSingleOrderById = catchAsync(async (req, res) => {
 const getOrdersForMe = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
   const { userId } = decoded;
-  const response = await orderService.getOrdersForMe(userId);
+  const response = await orderService.getOrdersForMe(userId, req.query);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

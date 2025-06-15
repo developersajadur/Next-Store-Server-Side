@@ -19,7 +19,6 @@ export type TUser = {
   role: 'customer' | 'admin';
   profileImage?: string;
   address?: string;
-  city?: string;
   isBlocked: boolean;
   isDeleted: boolean;
   loginType: TLoginType;

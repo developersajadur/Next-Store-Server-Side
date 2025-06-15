@@ -45,10 +45,6 @@ const userSchema = new mongoose_1.Schema({
     profileImage: {
         type: String,
     },
-    city: {
-        type: String,
-        default: 'N/A',
-    },
     address: {
         type: String,
         default: 'N/A',

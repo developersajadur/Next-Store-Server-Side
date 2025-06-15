@@ -56,7 +56,7 @@ const getSingleOrderById = (0, catchAsync_1.default)(async (req, res) => {
 const getOrdersForMe = (0, catchAsync_1.default)(async (req, res) => {
     const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
-    const response = await order_service_1.orderService.getOrdersForMe(userId);
+    const response = await order_service_1.orderService.getOrdersForMe(userId, req.query);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,

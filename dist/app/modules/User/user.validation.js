@@ -26,7 +26,6 @@ const createUserValidation = zod_1.z.object({
             .enum(['admin', 'customer'], { message: 'Invalid role' })
             .default('customer'),
         profileImage: zod_1.z.string().url().optional(),
-        city: zod_1.z.string().optional().default('N/A'),
         address: zod_1.z.string().optional().default('N/A'),
         isBlocked: zod_1.z.boolean().default(false), // Make carts optional
         createdAt: zod_1.z.date().optional(),
@@ -36,18 +35,17 @@ const createUserValidation = zod_1.z.object({
 const updateUserValidation = zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.string().optional(),
-        // phone: z.number().min(1, { message: 'Number is required' }),
-        // email: z
-        //   .string()
-        //   .email({ message: 'Please enter a valid email address' })
-        //   .min(1, { message: 'Email is required' })
-        //   .optional(),
+        phone: zod_1.z.number().min(1, { message: 'Number is required' }).optional(),
+        email: zod_1.z
+            .string()
+            .email({ message: 'Please enter a valid email address' })
+            .min(1, { message: 'Email is required' })
+            .optional(),
         // password: z
         //   .string()
         //   .min(6, { message: 'Password must be at least 6 characters long' })
         //   .optional(),
         // role: z.enum(['user', 'customer'], { message: 'Invalid role' }).optional(),
-        city: zod_1.z.string().optional().default('N/A').optional(),
         address: zod_1.z.string().optional().default('N/A').optional(),
         profileImage: zod_1.z.string().url().optional(),
         // isBlocked: z.boolean().default(false).optional(),

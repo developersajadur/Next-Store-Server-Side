@@ -16,6 +16,7 @@ const payment_utils_1 = require("../Payment/payment.utils");
 const order_constant_1 = require("./order.constant");
 const user_constant_1 = require("../User/user.constant");
 const user_model_1 = require("../User/user.model");
+const product_constant_1 = require("../Product/product.constant");
 const createOrder = async (userId, payload, client_ip) => {
     var _a;
     const user = (await user_model_1.UserModel.findById(userId));
@@ -50,7 +51,7 @@ const createOrder = async (userId, payload, client_ip) => {
             customer_address: user.address,
             customer_email: user.email,
             customer_phone: user.phone,
-            customer_city: user.city,
+            customer_city: user.address,
             client_ip,
         };
         const payment = await payment_utils_1.paymentUtils.makePaymentAsync(shurjopayPayload);
@@ -109,7 +110,7 @@ const updateOrderStatus = async (orderId, status) => {
         if (!order) {
             throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Order not found');
         }
-        if (order.isPaid !== "paid") {
+        if (order.isPaid !== 'paid') {
             throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Order is not paid yet, cannot update status');
         }
         if (order.status === 'Delivered' || order.status === 'Cancelled') {
@@ -119,7 +120,7 @@ const updateOrderStatus = async (orderId, status) => {
             throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Order is already returned and cannot be updated');
         }
         const payment = await payment_model_1.PaymentModel.findById({
-            orderId: orderId
+            orderId: orderId,
         }).session(session);
         if (!payment ||
             payment.status === 'failed' ||
@@ -155,9 +156,25 @@ const updateOrderStatus = async (orderId, status) => {
         throw error;
     }
 };
-const getOrdersForMe = async (userId) => {
-    const data = await order_model_1.default.find({ userId }).lean();
-    return data;
+const getOrdersForMe = async (userId, query) => {
+    const myOrderQuery = new QueryBuilder_1.default(order_model_1.default.find({ userId })
+        .select('-__v')
+        .populate({
+        path: 'products.product',
+        select: product_constant_1.baseSelectFields.join(' '),
+        populate: {
+            path: 'image',
+            select: 'url fileName',
+        },
+    }), query)
+        .search(order_constant_1.orderSearchableFields)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+    const result = await myOrderQuery.modelQuery;
+    const meta = await myOrderQuery.countTotal();
+    return { data: result, meta };
 };
 exports.orderService = {
     createOrder,

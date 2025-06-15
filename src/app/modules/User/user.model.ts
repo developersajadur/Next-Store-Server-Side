@@ -41,10 +41,6 @@ const userSchema = new Schema<TUser>(
     profileImage: {
       type: String,
     },
-    city: {
-      type: String,
-      default: 'N/A',
-    },
     address: {
       type: String,
       default: 'N/A',

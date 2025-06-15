@@ -12,6 +12,7 @@ import { paymentUtils } from '../Payment/payment.utils';
 import { orderSearchableFields } from './order.constant';
 import { USER_ROLE } from '../User/user.constant';
 import { UserModel } from '../User/user.model';
+import { baseSelectFields } from '../Product/product.constant';
 
 const createOrder = async (
   userId: string,
@@ -66,7 +67,7 @@ const createOrder = async (
       customer_address: user.address,
       customer_email: user.email,
       customer_phone: user.phone,
-      customer_city: user.city,
+      customer_city: user.address,
       client_ip,
     };
 
@@ -132,7 +133,6 @@ const getSingleOrderById = async (
   return null;
 };
 
-
 const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -143,14 +143,13 @@ const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
       throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
     }
 
-    if(order.isPaid !== "paid"){
+    if (order.isPaid !== 'paid') {
       throw new AppError(
         httpStatus.BAD_REQUEST,
         'Order is not paid yet, cannot update status',
       );
     }
 
-    
     if (order.status === 'Delivered' || order.status === 'Cancelled') {
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -166,7 +165,7 @@ const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
     }
 
     const payment = await PaymentModel.findById({
-      orderId: orderId
+      orderId: orderId,
     }).session(session);
 
     if (
@@ -219,9 +218,32 @@ const updateOrderStatus = async (orderId: string, status: IOrderStatus) => {
   }
 };
 
-const getOrdersForMe = async (userId: string) => {
-  const data = await Order.find({ userId }).lean();
-  return data;
+const getOrdersForMe = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const myOrderQuery = new QueryBuilder(
+    Order.find({ userId })
+      .select('-__v')
+      .populate({
+        path: 'products.product',
+        select: baseSelectFields.join(' '),
+        populate: {
+          path: 'image',
+          select: 'url fileName',
+        },
+      }),
+    query,
+  )
+    .search(orderSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await myOrderQuery.modelQuery;
+  const meta = await myOrderQuery.countTotal();
+  return { data: result, meta };
 };
 
 export const orderService = {
