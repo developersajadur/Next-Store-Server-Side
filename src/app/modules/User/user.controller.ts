@@ -3,22 +3,23 @@ import catchAsync from '../../helpers/catchAsync';
 import sendResponse from '../../helpers/sendResponse';
 import { userService } from './user.service';
 import { tokenDecoder } from '../../helpers/jwtHelper';
+import { fileUploads } from '../../helpers/fileUploader';
 
 const createUserIntoDb = catchAsync(async (req, res) => {
-  const  {user, token} = await userService.createUserIntoDb(req?.body);
+  const { user, token } = await userService.createUserIntoDb(req?.body);
   const responseData = {
     _id: user._id,
     name: user.name,
     email: user.email,
     phone: user.phone,
     role: user.role,
-    loginType: user.loginType
+    loginType: user.loginType,
   };
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: 'WOW! Registration successful',
-    data:  {responseData, token},
+    data: { responseData, token },
   });
 });
 
@@ -46,7 +47,20 @@ const updateUser = catchAsync(async (req, res) => {
   const decoded = tokenDecoder(req);
   const { userId } = decoded;
 
-  const updatedUser = await userService.updateUser(userId, req.body);
+  const parsedData = JSON.parse(req.body.data);
+  let profileImageUrl;
+
+  if (req.file) {
+    const uploadedProfileImage = await fileUploads.uploadToCloudinary(req.file);
+    profileImageUrl = uploadedProfileImage.secure_url;
+  }
+  // console.log(profileImageUrl);
+  const dataToUpdate = {
+    ...(profileImageUrl && { profileImage: profileImageUrl }),
+    ...parsedData,
+  };
+
+  const updatedUser = await userService.updateUser(userId, dataToUpdate);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -72,6 +86,21 @@ const changePassword = catchAsync(async (req, res) => {
     statusCode: status.OK,
     success: true,
     message: 'Password updated successfully',
+    data: updatedUser,
+  });
+});
+
+const getMyProfileData = catchAsync(async (req, res) => {
+  const decoded = tokenDecoder(req);
+  const { userId } = decoded;
+
+  // Call the changePassword service
+  const updatedUser = await userService.getMyProfileData(userId);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'My profile data retrieved successfully',
     data: updatedUser,
   });
 });
@@ -107,4 +136,5 @@ export const userController = {
   changePassword,
   blockUser,
   unBlockUser,
+  getMyProfileData,
 };

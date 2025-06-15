@@ -9,6 +9,7 @@ const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
 const user_service_1 = require("./user.service");
 const jwtHelper_1 = require("../../helpers/jwtHelper");
+const fileUploader_1 = require("../../helpers/fileUploader");
 const createUserIntoDb = (0, catchAsync_1.default)(async (req, res) => {
     const { user, token } = await user_service_1.userService.createUserIntoDb(req === null || req === void 0 ? void 0 : req.body);
     const responseData = {
@@ -17,7 +18,7 @@ const createUserIntoDb = (0, catchAsync_1.default)(async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        loginType: user.loginType
+        loginType: user.loginType,
     };
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
@@ -47,7 +48,15 @@ const getSingleUser = (0, catchAsync_1.default)(async (req, res) => {
 const updateUser = (0, catchAsync_1.default)(async (req, res) => {
     const decoded = (0, jwtHelper_1.tokenDecoder)(req);
     const { userId } = decoded;
-    const updatedUser = await user_service_1.userService.updateUser(userId, req.body);
+    const parsedData = JSON.parse(req.body.data);
+    let profileImageUrl;
+    if (req.file) {
+        const uploadedProfileImage = await fileUploader_1.fileUploads.uploadToCloudinary(req.file);
+        profileImageUrl = uploadedProfileImage.secure_url;
+    }
+    // console.log(profileImageUrl);
+    const dataToUpdate = Object.assign(Object.assign({}, (profileImageUrl && { profileImage: profileImageUrl })), parsedData);
+    const updatedUser = await user_service_1.userService.updateUser(userId, dataToUpdate);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -65,6 +74,18 @@ const changePassword = (0, catchAsync_1.default)(async (req, res) => {
         statusCode: http_status_1.default.OK,
         success: true,
         message: 'Password updated successfully',
+        data: updatedUser,
+    });
+});
+const getMyProfileData = (0, catchAsync_1.default)(async (req, res) => {
+    const decoded = (0, jwtHelper_1.tokenDecoder)(req);
+    const { userId } = decoded;
+    // Call the changePassword service
+    const updatedUser = await user_service_1.userService.getMyProfileData(userId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'My profile data retrieved successfully',
         data: updatedUser,
     });
 });
@@ -97,4 +118,5 @@ exports.userController = {
     changePassword,
     blockUser,
     unBlockUser,
+    getMyProfileData,
 };

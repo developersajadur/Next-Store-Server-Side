@@ -17,7 +17,7 @@ cloudinary_1.v2.config({
 const storage = multer_1.default.memoryStorage();
 const multerConfig = (0, multer_1.default)({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Limit: 5MB per file
+    limits: { fileSize: 10 * 1024 * 1024 }, // Limit: 10MB per file
 });
 const upload = {
     single: multerConfig.single('file'),

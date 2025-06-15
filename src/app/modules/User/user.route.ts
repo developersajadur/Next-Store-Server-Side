@@ -4,6 +4,7 @@ import auth from '../../middlewares/auth';
 import { USER_ROLE } from './user.constant';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserValidationSchema } from './user.validation';
+import { fileUploads } from '../../helpers/fileUploader';
 
 const router = Router();
 
@@ -23,10 +24,16 @@ router.get(
   auth(USER_ROLE.customer, USER_ROLE.admin),
   userController.getSingleUser,
 );
-router.put(
+router.get(
+  '/my-profile-data',
+  auth(USER_ROLE.customer, USER_ROLE.admin),
+  userController.getMyProfileData,
+);
+router.patch(
   '/update-user',
   auth(USER_ROLE.customer, USER_ROLE.admin),
-  validateRequest(UserValidationSchema.updateUserValidation),
+  // validateRequest(UserValidationSchema.updateUserValidation),
+  fileUploads.upload.single,
   userController.updateUser,
 );
 

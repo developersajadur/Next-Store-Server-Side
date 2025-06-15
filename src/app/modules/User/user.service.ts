@@ -25,7 +25,7 @@ const createUserIntoDb = async (payload: TUser) => {
     userId: user._id.toString(),
     email: user?.email,
     role: user?.role,
-    loginType: user.loginType
+    loginType: user.loginType,
   };
 
   const token = createToken(
@@ -34,8 +34,7 @@ const createUserIntoDb = async (payload: TUser) => {
     config.jwt_refresh_expires_in as any,
   );
 
-
-  return {user, token};
+  return { user, token };
 };
 
 const getSingleUser = async (userId: string) => {
@@ -80,6 +79,17 @@ const updateUser = async (userId: string, userInfo: Partial<TUser>) => {
   return updatedUser;
 };
 
+const getMyProfileData = async (userId: string) => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, 'User not found');
+  } else if (user.isBlocked || user.isDeleted) {
+    throw new AppError(status.FORBIDDEN, 'You are blocked or deleted');
+  }
+
+  return user;
+};
+
 const changePassword = async (
   userId: string,
   newPassword: string,
@@ -90,11 +100,17 @@ const changePassword = async (
     throw new AppError(status.NOT_FOUND, 'User not found');
   }
 
-  if(user.loginType !== LOGIN_TYPE.PASSWORD){
-   throw new AppError(status.UNAUTHORIZED, 'You are not registered by password');
+  if (user.loginType !== LOGIN_TYPE.PASSWORD) {
+    throw new AppError(
+      status.UNAUTHORIZED,
+      'You are not registered by password',
+    );
   }
 
-  const passwordMatch = await bcrypt.compare(currentPassword, user.password as string);
+  const passwordMatch = await bcrypt.compare(
+    currentPassword,
+    user.password as string,
+  );
   if (!passwordMatch) {
     throw new AppError(status.UNAUTHORIZED, 'Invalid current password!');
   }
@@ -153,4 +169,5 @@ export const userService = {
   changePassword,
   blockUser,
   unblockUser,
+  getMyProfileData,
 };

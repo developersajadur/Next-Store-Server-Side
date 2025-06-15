@@ -24,7 +24,7 @@ const createUserIntoDb = async (payload) => {
         userId: user._id.toString(),
         email: user === null || user === void 0 ? void 0 : user.email,
         role: user === null || user === void 0 ? void 0 : user.role,
-        loginType: user.loginType
+        loginType: user.loginType,
     };
     const token = (0, jwtHelper_1.createToken)(jwtPayload, config_1.default.jwt_token_secret, config_1.default.jwt_refresh_expires_in);
     return { user, token };
@@ -61,6 +61,16 @@ const updateUser = async (userId, userInfo) => {
         runValidators: true,
     });
     return updatedUser;
+};
+const getMyProfileData = async (userId) => {
+    const user = await user_model_1.UserModel.findById(userId);
+    if (!user) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    }
+    else if (user.isBlocked || user.isDeleted) {
+        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'You are blocked or deleted');
+    }
+    return user;
 };
 const changePassword = async (userId, newPassword, currentPassword) => {
     const user = await user_model_1.UserModel.findById(userId).select('+password');
@@ -115,4 +125,5 @@ exports.userService = {
     changePassword,
     blockUser,
     unblockUser,
+    getMyProfileData,
 };

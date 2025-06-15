@@ -10,12 +10,16 @@ const auth_1 = __importDefault(require("../../middlewares/auth"));
 const user_constant_1 = require("./user.constant");
 const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
 const user_validation_1 = require("./user.validation");
+const fileUploader_1 = require("../../helpers/fileUploader");
 const router = (0, express_1.Router)();
 router.post('/register', (0, validateRequest_1.default)(user_validation_1.UserValidationSchema.createUserValidation), user_controller_1.userController.createUserIntoDb);
 router.post('/change-password', (0, auth_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.customer), user_controller_1.userController.changePassword);
 router.get('/', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.getAllUsers);
 router.get('/user/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), user_controller_1.userController.getSingleUser);
-router.put('/update-user', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), (0, validateRequest_1.default)(user_validation_1.UserValidationSchema.updateUserValidation), user_controller_1.userController.updateUser);
+router.get('/my-profile-data', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), user_controller_1.userController.getMyProfileData);
+router.patch('/update-user', (0, auth_1.default)(user_constant_1.USER_ROLE.customer, user_constant_1.USER_ROLE.admin), 
+// validateRequest(UserValidationSchema.updateUserValidation),
+fileUploader_1.fileUploads.upload.single, user_controller_1.userController.updateUser);
 router.post('/block-user', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.blockUser);
 router.post('/unblock-user', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), user_controller_1.userController.unBlockUser);
 exports.userRoute = router;

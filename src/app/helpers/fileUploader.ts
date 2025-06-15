@@ -16,7 +16,7 @@ const storage = multer.memoryStorage();
 
 const multerConfig = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limit: 5MB per file
+  limits: { fileSize: 10 * 1024 * 1024 }, // Limit: 10MB per file
 });
 
 
@@ -34,7 +34,7 @@ const bufferToStream = (buffer: Buffer) => {
 };
 
 const uploadToCloudinary = async (
-  file: Express.Multer.File
+  file: Express.Multer.File | any
 ): Promise<ICloudinaryResponse> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
