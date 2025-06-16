@@ -131,9 +131,30 @@ const getMyPayment = async (query: Record<string, unknown>, userId: string) => {
     .fields();
 
   const result = await paymentQuery.modelQuery;
-  const meta = await paymentQuery.countTotal();
-  return { data: result, meta };
+
+  const totalCount = await paymentQuery.countTotal();
+
+  const allPayments = await PaymentModel.find({ userId });
+
+  const totalPayments = allPayments.length;
+  const successPayments = allPayments.filter(p => p.status === "paid");
+  const totalSuccessAmount = successPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  const successRate = totalPayments
+    ? (successPayments.length / totalPayments) * 100
+    : 0;
+
+  return {
+    data: result,
+    meta: {
+      totalPayments,
+      totalAmount: totalSuccessAmount,
+      successRate: parseFloat(successRate.toFixed(2)),
+      pagination: totalCount,
+    },
+  };
 };
+
 
 export const paymentService = {
   verifyPayment,
