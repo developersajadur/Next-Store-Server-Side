@@ -19,6 +19,35 @@ const loginUser = async (payload) => {
     else if (user === null || user === void 0 ? void 0 : user.isBlocked) {
         throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'User Is Blocked');
     }
+    else if ((user === null || user === void 0 ? void 0 : user.role) !== 'customer') {
+        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'You are not authorized to access this resource');
+    }
+    const passwordMatch = await bcrypt_1.default.compare(payload === null || payload === void 0 ? void 0 : payload.password, user === null || user === void 0 ? void 0 : user.password);
+    if (!passwordMatch) {
+        throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid password!');
+    }
+    const jwtPayload = {
+        userId: user === null || user === void 0 ? void 0 : user._id.toString(),
+        email: user === null || user === void 0 ? void 0 : user.email,
+        profileImage: user === null || user === void 0 ? void 0 : user.profileImage,
+        role: user === null || user === void 0 ? void 0 : user.role,
+        loginType: user.loginType
+    };
+    const token = (0, jwtHelper_1.createToken)(jwtPayload, config_1.default.jwt_token_secret, config_1.default.jwt_refresh_expires_in);
+    return { token };
+};
+const loginAdmin = async (payload) => {
+    const user = await user_model_1.UserModel.findOne({ email: payload === null || payload === void 0 ? void 0 : payload.email }).select('+password');
+    // console.log(user);
+    if (!user) {
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'User Not Found');
+    }
+    else if (user === null || user === void 0 ? void 0 : user.isBlocked) {
+        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'User Is Blocked');
+    }
+    else if ((user === null || user === void 0 ? void 0 : user.role) !== 'admin') {
+        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'You are not authorized to access this resource');
+    }
     const passwordMatch = await bcrypt_1.default.compare(payload === null || payload === void 0 ? void 0 : payload.password, user === null || user === void 0 ? void 0 : user.password);
     if (!passwordMatch) {
         throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid password!');
@@ -35,4 +64,5 @@ const loginUser = async (payload) => {
 };
 exports.AuthServices = {
     loginUser,
+    loginAdmin,
 };

@@ -16,6 +16,44 @@ const loginUser = async (payload: TLoginUser): Promise<{ token: string }> => {
     throw new AppError(status.NOT_FOUND, 'User Not Found');
   } else if (user?.isBlocked) {
     throw new AppError(status.FORBIDDEN, 'User Is Blocked');
+  }else if (user?.role !== 'customer') {
+    throw new AppError(status.FORBIDDEN, 'You are not authorized to access this resource');
+  }
+  const passwordMatch = await bcrypt.compare(
+    payload?.password,
+    user?.password as string,
+  );
+  if (!passwordMatch) {
+    throw new AppError(status.UNAUTHORIZED, 'Invalid password!');
+  }
+
+  const jwtPayload = {
+    userId: user?._id.toString(),
+    email: user?.email,
+    profileImage: user?.profileImage,
+    role: user?.role,
+    loginType: user.loginType
+  };
+
+  const token = createToken(
+    jwtPayload,
+    config.jwt_token_secret as string,
+    config.jwt_refresh_expires_in as any,
+  );
+
+  return { token };
+};
+const loginAdmin = async (payload: TLoginUser): Promise<{ token: string }> => {
+  const user = await UserModel.findOne({ email: payload?.email }).select(
+    '+password',
+  );
+  // console.log(user);
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, 'User Not Found');
+  } else if (user?.isBlocked) {
+    throw new AppError(status.FORBIDDEN, 'User Is Blocked');
+  }else if (user?.role !== 'admin') {
+    throw new AppError(status.FORBIDDEN, 'You are not authorized to access this resource');
   }
   const passwordMatch = await bcrypt.compare(
     payload?.password,
@@ -44,4 +82,5 @@ const loginUser = async (payload: TLoginUser): Promise<{ token: string }> => {
 
 export const AuthServices = {
   loginUser,
+  loginAdmin,
 };

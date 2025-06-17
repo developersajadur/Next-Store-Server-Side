@@ -89,7 +89,17 @@ const getAllProductsForCategories = async (query, categorySlug) => {
 const getAllProductsForProductCard = async (query) => {
     const productQuery = new QueryBuilder_1.default(product_model_1.ProductModel.find({ isDeleted: false })
         .select(product_constant_1.baseSelectFields)
-        .populate(product_constant_1.populateImage), query)
+        .populate(product_constant_1.populateImage)
+        .populate({
+        path: 'category',
+        select: 'title slug image',
+        populate: product_constant_1.populateImage,
+    })
+        .populate({
+        path: 'brand',
+        select: 'title slug image',
+        populate: product_constant_1.populateImage,
+    }), query)
         .search(product_constant_1.productSearchableFields)
         .filter()
         .sort()

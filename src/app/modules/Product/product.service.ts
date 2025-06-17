@@ -124,7 +124,17 @@ const getAllProductsForProductCard = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(
     ProductModel.find({ isDeleted: false })
       .select(baseSelectFields)
-      .populate(populateImage),
+      .populate(populateImage)
+          .populate({
+      path: 'category',
+      select: 'title slug image',
+      populate: populateImage,
+    })
+    .populate({
+      path: 'brand',
+      select: 'title slug image',
+      populate: populateImage,
+    }),
     query,
   )
     .search(productSearchableFields)

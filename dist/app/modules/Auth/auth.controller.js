@@ -24,6 +24,22 @@ const loginUser = (0, catchAsync_1.default)(async (req, res) => {
         data: { token },
     });
 });
+const loginAdmin = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await auth_service_1.AuthServices.loginAdmin(req === null || req === void 0 ? void 0 : req.body);
+    const { token } = result;
+    res.cookie('token', token, {
+        secure: config_1.default.node_env === 'production',
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+    });
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Logged in successfully!',
+        data: { token },
+    });
+});
 exports.AuthControllers = {
     loginUser,
+    loginAdmin
 };
