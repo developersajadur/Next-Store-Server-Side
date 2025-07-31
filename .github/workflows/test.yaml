@@ -1,0 +1,11 @@
+name: testing
+
+on: [push, workflow_dispatch]
+
+jobs: 
+  console-log: 
+    runs-on: ubuntu-latest
+    steps: 
+      - name: run console log
+        run: pwd
+
