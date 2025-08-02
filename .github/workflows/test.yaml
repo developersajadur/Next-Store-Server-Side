@@ -6,7 +6,7 @@ jobs:
   console-log: 
     runs-on: ubuntu-latest
     steps: 
-      - name: clone repo
+      - name: clone the git repo
         uses: actions/checkout@v4
         
       - name: run console log
