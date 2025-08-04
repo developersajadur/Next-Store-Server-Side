@@ -16,4 +16,5 @@ router.get('/get-all-with-some-data', brand_controller_1.brandController.getAllB
 router.get('/id/:id', brand_controller_1.brandController.getSingleBrandById);
 router.get('/slug/:slug', brand_controller_1.brandController.getSingleBrandBySlug);
 router.delete('/delete', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), brand_controller_1.brandController.deleteBrand);
+router.get('/get-brand-with-title-and-id', brand_controller_1.brandController.getBrandWithTitleAndId);
 exports.brandRouter = router;

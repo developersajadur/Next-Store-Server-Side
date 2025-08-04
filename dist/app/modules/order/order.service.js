@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderService = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const order_model_1 = __importDefault(require("../Order/order.model"));
+const order_model_1 = __importDefault(require("./order.model"));
 const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const QueryBuilder_1 = __importDefault(require("../../builders/QueryBuilder"));

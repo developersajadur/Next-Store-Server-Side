@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Order from '../Order/order.model';
+import Order from './order.model';
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import { TUser, TUserRole } from '../User/user.interface';

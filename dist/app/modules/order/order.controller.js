@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
 const catchAsync_1 = __importDefault(require("../../helpers/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../helpers/sendResponse"));
-const order_service_1 = require("../Order/order.service");
+const order_service_1 = require("./order.service");
 const http_status_1 = __importDefault(require("http-status"));
 const jwtHelper_1 = require("../../helpers/jwtHelper");
 const createOrder = (0, catchAsync_1.default)(async (req, res) => {

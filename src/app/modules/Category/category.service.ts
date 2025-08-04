@@ -120,6 +120,13 @@ const deleteSingleOrMultipleCategories = async (categoryIds: string[]) => {
   );
 };
 
+const getCategoriesWithTitleAndId = async () => {
+  const categories = await CategoryModel.find({ isDeleted: false })
+    .select({ title: 1, _id: 1 })
+    .lean();
+  return categories;
+}
+
 export const categoryService = {
   createCategoryIntoDb,
   getAllCategories,
@@ -127,5 +134,6 @@ export const categoryService = {
   getCategoryBySlug,
   updateCategoryById,
   deleteSingleOrMultipleCategories,
-  getAllCategoryWithSomeData
+  getAllCategoryWithSomeData,
+  getCategoriesWithTitleAndId
 };

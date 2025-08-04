@@ -16,4 +16,5 @@ router.get('/id/:id', category_controller_1.categoryController.getCategoryById);
 router.get('/slug/:slug', category_controller_1.categoryController.getCategoryBySlug);
 router.patch('/update/:id', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), category_controller_1.categoryController.updateCategoryById);
 router.delete('/delete', (0, auth_1.default)(user_constant_1.USER_ROLE.admin), category_controller_1.categoryController.deleteSingleOrMultipleCategories);
+router.get('/get-categories-with-title-and-id', category_controller_1.categoryController.getCategoriesWithTitleAndId);
 exports.categoryRouter = router;

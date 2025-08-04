@@ -89,6 +89,12 @@ const deleteSingleOrMultipleCategories = async (categoryIds) => {
     }
     await category_model_1.CategoryModel.updateMany({ _id: { $in: categoryIds } }, { $set: { isDeleted: true } }, { new: true });
 };
+const getCategoriesWithTitleAndId = async () => {
+    const categories = await category_model_1.CategoryModel.find({ isDeleted: false })
+        .select({ title: 1, _id: 1 })
+        .lean();
+    return categories;
+};
 exports.categoryService = {
     createCategoryIntoDb,
     getAllCategories,
@@ -96,5 +102,6 @@ exports.categoryService = {
     getCategoryBySlug,
     updateCategoryById,
     deleteSingleOrMultipleCategories,
-    getAllCategoryWithSomeData
+    getAllCategoryWithSomeData,
+    getCategoriesWithTitleAndId
 };

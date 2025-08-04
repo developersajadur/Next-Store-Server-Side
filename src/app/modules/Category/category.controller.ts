@@ -29,6 +29,16 @@ const getAllCategories = catchAsync(async (req, res) => {
   });
 });
 
+const getCategoriesWithTitleAndId = catchAsync(async (req, res) => {
+  const result = await categoryService.getCategoriesWithTitleAndId();
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Categories fetched successfully with Title and Id',
+    data: result,
+  });
+});
+
 const getAllCategoryWithSomeData = catchAsync(async (req, res) => {
   const result = await categoryService.getAllCategoryWithSomeData();
   sendResponse(res, {
@@ -92,5 +102,6 @@ export const categoryController = {
   getCategoryBySlug,
   updateCategoryById,
   deleteSingleOrMultipleCategories,
-  getAllCategoryWithSomeData
+  getAllCategoryWithSomeData,
+  getCategoriesWithTitleAndId
 };

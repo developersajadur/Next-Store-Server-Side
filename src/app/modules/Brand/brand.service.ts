@@ -130,6 +130,14 @@ const deleteSingleOrMultipleBrands = async (brandsId: string[]) => {
   );
 };
 
+
+const getBrandWithTitleAndId = async () => {
+  const brands = await BrandModel.find({ isDeleted: false })
+    .select({ title: 1, _id: 1 })
+    .lean();
+  return brands;
+}
+
 export const brandService = {
   createBrandIntoDb,
   updateBrandIntoDb,
@@ -137,5 +145,7 @@ export const brandService = {
   getSingleBrandById,
   getSingleBrandBySlug,
   deleteSingleOrMultipleBrands,
-  getAllBrandsWithSomeData
+  getAllBrandsWithSomeData,
+  getBrandWithTitleAndId
+  
 };

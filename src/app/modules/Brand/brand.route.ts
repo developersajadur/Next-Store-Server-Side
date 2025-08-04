@@ -12,5 +12,6 @@ router.get('/get-all-with-some-data', brandController.getAllBrandsWithSomeData);
 router.get('/id/:id', brandController.getSingleBrandById);
 router.get('/slug/:slug', brandController.getSingleBrandBySlug);
 router.delete('/delete', auth(USER_ROLE.admin), brandController.deleteBrand);
+router.get('/get-brand-with-title-and-id', brandController.getBrandWithTitleAndId);
 
 export const brandRouter = router;

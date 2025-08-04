@@ -19,4 +19,6 @@ router.patch('/update/:id', auth(USER_ROLE.admin), categoryController.updateCate
 
 router.delete('/delete', auth(USER_ROLE.admin), categoryController.deleteSingleOrMultipleCategories);
 
+router.get('/get-categories-with-title-and-id', categoryController.getCategoriesWithTitleAndId);
+
 export const categoryRouter = router;

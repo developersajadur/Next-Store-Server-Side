@@ -1,6 +1,6 @@
 import catchAsync from '../../helpers/catchAsync';
 import sendResponse from '../../helpers/sendResponse';
-import { orderService } from '../Order/order.service';
+import { orderService } from './order.service';
 import httpStatus from 'http-status';
 import { tokenDecoder } from '../../helpers/jwtHelper';
 
